@@ -31,7 +31,6 @@ Resources:
               Condition:
                 StringEquals:
                   kms:ViaService: !Sub 'ssm.${AWS::Region}.amazonaws.com'
-            - Effect: Allow
 
       FunctionUrlConfig:
         AuthType: NONE
