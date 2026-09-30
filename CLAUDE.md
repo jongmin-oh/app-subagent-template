@@ -91,18 +91,21 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ```
 mobile/          # Expo 앱 (frontend 에이전트 담당)
-  app/           # Expo Router 화면
-  components/
-  theme/         # 디자인 토큰 (색상, 간격, 타이포)
-  api/           # openapi.json에서 생성된 타입 + API 클라이언트
+  src/
+    app/         # Expo Router 화면 (화면과 _layout.tsx만)
+    components/
+    theme/       # 디자인 토큰 (색상, 간격, 타이포)
+    api/         # openapi.json에서 생성된 타입 + API 클라이언트
+  __tests__/     # 모바일 테스트 (tester 에이전트 담당)
+  CLAUDE.md      # Expo 공식 에이전트 지침 (create-expo-app 생성)
 backend/         # FastAPI (backend 에이전트 담당)
   app/
     routers/
     schemas/     # Pydantic 모델
     services/
   handler.py     # Lambda 엔트리포인트 (Mangum)
-  tests/
-infra/           # IaC (backend 에이전트 담당)
+  template.yaml  # AWS SAM 템플릿 (Lambda, Function URL, DB 리소스)
+  tests/         # 백엔드 테스트 (tester 에이전트 담당)
 docs/
   spec.md        # 기능 요구사항, 우선순위
   openapi.json   # ★ 프론트-백엔드 계약 파일
@@ -115,7 +118,7 @@ docs/
 
 | 에이전트 | 담당 폴더 | 하는 일 |
 |---|---|---|
-| `backend` | `backend/`, `infra/` | API, 비즈니스 로직, DB, Lambda 배포 설정 |
+| `backend` | `backend/` | API, 비즈니스 로직, DB, Lambda 배포 설정 |
 | `frontend` | `mobile/` | 화면, 컴포넌트, API 연동, 디자인 토큰 준수 |
 | `tester` | `backend/tests/`, `mobile/__tests__/` | 테스트 작성·실행으로 동작 검증 |
 | `reviewer` | 없음 (읽기 전용) | 코드 리뷰: 규칙 준수, 계약 일치, 보안, 설계 |
@@ -137,7 +140,7 @@ docs/
    ```
 2. `frontend`는 스펙에서 타입을 생성해서 씁니다. 타입을 손으로 작성하지 않습니다:
    ```bash
-   cd mobile && npx openapi-typescript ../docs/openapi.json -o api/schema.d.ts
+   cd mobile && npx openapi-typescript ../docs/openapi.json -o src/api/schema.d.ts
    ```
 3. 스펙에 없는 필드나 엔드포인트가 필요하면 `frontend`는 직접 만들지 말고 메인에게 보고합니다.
 
@@ -162,7 +165,7 @@ cd mobile && npx tsc --noEmit && npx eslint .    # 타입체크/린트
 ## 코딩 규칙
 
 - **Python**: 타입 힌트 필수, 요청/응답은 모두 Pydantic 스키마, 라우터에 비즈니스 로직 넣지 않기(services로 분리)
-- **TypeScript**: `strict` 모드, `any` 금지, 색상·간격은 `theme/`의 토큰만 사용 (하드코딩 금지)
+- **TypeScript**: `strict` 모드, `any` 금지, 색상·간격은 `src/theme/`의 토큰만 사용 (하드코딩 금지)
 - **Lambda**: 핸들러 밖에서 무거운 초기화 피하기(콜드 스타트), 환경변수는 `.env`가 아닌 IaC에서 주입
 - **비밀값**: 코드·커밋에 절대 포함하지 않기
 

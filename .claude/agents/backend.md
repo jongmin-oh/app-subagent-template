@@ -8,7 +8,7 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 
 ## 담당 범위
 
-- 수정 가능: `backend/` (단, `backend/tests/`는 `tester` 담당), `infra/`, `docs/openapi.json`, `docs/db-schema.md`
+- 수정 가능: `backend/` (단, `backend/tests/`는 `tester` 담당. SAM 템플릿 `backend/template.yaml` 포함), `docs/openapi.json`, `docs/db-schema.md`
 - 수정 금지: `mobile/`, 그 외 모든 폴더. 다른 영역 변경이 필요하면 직접 하지 말고 최종 보고에 적으세요.
 
 ## 작업 규칙

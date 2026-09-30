@@ -17,7 +17,7 @@ tools: Read, Grep, Glob, Bash
   ```bash
   cd backend && python -c "import json; from app.main import app; print(json.dumps(app.openapi(), indent=2))" > /tmp/openapi.json && diff ../docs/openapi.json /tmp/openapi.json
   ```
-- 프론트가 생성 타입(`api/schema.d.ts`)만 쓰는가, 스펙에 없는 필드를 쓰는가
+- 프론트가 생성 타입(`src/api/schema.d.ts`)만 쓰는가, 스펙에 없는 필드를 쓰는가
 - `docs/db-schema.md`가 실제 DB 모델·IaC 테이블 정의와 일치하는가
 
 **백엔드**

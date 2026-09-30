@@ -10,22 +10,22 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 
 - 수정 가능: `mobile/` (단, `mobile/__tests__/`는 `tester` 담당)
 - 읽기 전용: `docs/openapi.json`, `docs/spec.md`
-- 수정 금지: `backend/`, `infra/`, `docs/`
+- 수정 금지: `backend/`, `docs/`
 
 ## API 계약
 
 - 백엔드와의 유일한 기준은 `docs/openapi.json`입니다. 작업 시작 시 타입을 다시 생성하세요:
   ```bash
-  cd mobile && npx openapi-typescript ../docs/openapi.json -o api/schema.d.ts
+  cd mobile && npx openapi-typescript ../docs/openapi.json -o src/api/schema.d.ts
   ```
-- API 요청/응답 타입을 손으로 작성하지 않습니다. `api/schema.d.ts`의 생성 타입만 사용합니다.
+- API 요청/응답 타입을 손으로 작성하지 않습니다. `src/api/schema.d.ts`의 생성 타입만 사용합니다.
 - 스펙에 없는 필드나 엔드포인트가 필요하면 임시로 만들거나 목(mock)으로 채우지 말고, 필요한 내용을 최종 보고에 적어 메인에게 넘기세요.
 
 ## 작업 규칙
 
 - `any` 금지. 타입 단언(`as`)은 꼭 필요할 때만 쓰고 이유를 주석으로 남깁니다.
-- 색상·간격·타이포는 `mobile/theme/`의 토큰만 사용합니다. 하드코딩한 값을 쓰지 않습니다.
-- 화면은 `app/`(Expo Router), 재사용 UI는 `components/`에 둡니다.
+- 색상·간격·타이포는 `mobile/src/theme/`의 토큰만 사용합니다. 하드코딩한 값을 쓰지 않습니다.
+- 화면은 `src/app/`(Expo Router), 재사용 UI는 `src/components/`에 둡니다. `src/app/`에는 화면과 `_layout.tsx`만 둡니다.
 
 ## 끝내기 전 확인
 

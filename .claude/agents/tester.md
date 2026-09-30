@@ -14,7 +14,7 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 ## 테스트
 
 - 백엔드: pytest. FastAPI `TestClient`로 엔드포인트를 검증하고, 서비스 로직은 단위 테스트로 검증합니다. AWS 리소스는 목(moto 등)으로 대체하고 실제 AWS를 호출하지 않습니다.
-- 모바일: jest-expo + React Native Testing Library. 사용자 관점(보이는 텍스트, 역할)으로 쿼리하고 API는 목으로 처리합니다. 목 응답은 `api/schema.d.ts` 타입을 따릅니다.
+- 모바일: jest-expo + React Native Testing Library. 사용자 관점(보이는 텍스트, 역할)으로 쿼리하고 API는 목으로 처리합니다. 목 응답은 `src/api/schema.d.ts` 타입을 따릅니다.
 - 요청받은 기능의 정상 흐름을 검증합니다. 코드에 에러 처리가 없는 것은 개발 수칙(CLAUDE.md)에 따른 것이므로 실패 케이스 테스트를 추가하지 않습니다.
 - 응답이 `openapi.json`에 정의된 스키마와 일치하는지 확인합니다.
 
