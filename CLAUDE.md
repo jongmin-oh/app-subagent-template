@@ -83,7 +83,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## 스택
 
 - **모바일**: Expo (React Native, TypeScript, Expo Router)
-- **백엔드**: FastAPI (Python 3.12) → AWS Lambda (Mangum 어댑터) + Lambda Function URL
+- **백엔드**: FastAPI (Python 3.13) → AWS Lambda (Mangum 어댑터) + Lambda Function URL
 - **인프라**: AWS SAM
 - **DB**: <!-- TODO: DynamoDB / RDS(Postgres) 등 -->
 
@@ -103,8 +103,9 @@ backend/         # FastAPI (backend 에이전트 담당)
     routers/
     schemas/     # Pydantic 모델
     services/
-  handler.py     # Lambda 엔트리포인트 (Mangum)
-  template.yaml  # AWS SAM 템플릿 (Lambda, Function URL, DB 리소스)
+  main.py        # FastAPI 앱 + Lambda 엔트리포인트 (Mangum, main.lambda_handler)
+  template.yml   # AWS SAM 템플릿 (Lambda, Function URL, DB 리소스)
+  run.sh         # sam build + deploy
   tests/         # 백엔드 테스트 (tester 에이전트 담당)
 docs/
   spec.md        # 기능 요구사항, 우선순위
@@ -136,7 +137,7 @@ docs/
 
 1. `backend`가 엔드포인트를 추가·변경하면 반드시 스펙을 다시 내보냅니다:
    ```bash
-   cd backend && python -c "import json; from app.main import app; print(json.dumps(app.openapi(), indent=2))" > ../docs/openapi.json
+   cd backend && python -c "import json; from main import app; print(json.dumps(app.openapi(), indent=2))" > ../docs/openapi.json
    ```
 2. `frontend`는 스펙에서 타입을 생성해서 씁니다. 타입을 손으로 작성하지 않습니다:
    ```bash
@@ -152,7 +153,7 @@ docs/
 
 ```bash
 # 백엔드
-cd backend && uvicorn app.main:app --reload      # 로컬 실행
+cd backend && uvicorn main:app --reload          # 로컬 실행
 cd backend && pytest                              # 테스트
 cd backend && ruff check . && ruff format .      # 린트/포맷
 

@@ -4,11 +4,11 @@ description: FastAPI 백엔드와 AWS Lambda/인프라 작업 담당. API 엔드
 tools: Read, Edit, Write, Bash, Grep, Glob
 ---
 
-당신은 이 프로젝트의 백엔드 개발자입니다. 스택은 FastAPI (Python 3.12) + Mangum → AWS Lambda + Lambda Function URL입니다.
+당신은 이 프로젝트의 백엔드 개발자입니다. 스택은 FastAPI (Python 3.13) + Mangum → AWS Lambda + Lambda Function URL입니다.
 
 ## 담당 범위
 
-- 수정 가능: `backend/` (단, `backend/tests/`는 `tester` 담당. SAM 템플릿 `backend/template.yaml` 포함), `docs/openapi.json`, `docs/db-schema.md`
+- 수정 가능: `backend/` (단, `backend/tests/`는 `tester` 담당. SAM 템플릿 `backend/template.yml` 포함), `docs/openapi.json`, `docs/db-schema.md`
 - 수정 금지: `mobile/`, 그 외 모든 폴더. 다른 영역 변경이 필요하면 직접 하지 말고 최종 보고에 적으세요.
 
 ## 작업 규칙
@@ -20,7 +20,7 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 - 환경변수·비밀값은 IaC에서 주입합니다. 코드나 `.env` 커밋에 비밀값을 넣지 않습니다.
 - 엔드포인트의 경로, 파라미터, 응답 모델이 바뀌면 **반드시** 스펙을 다시 내보냅니다:
   ```bash
-  cd backend && python -c "import json; from app.main import app; print(json.dumps(app.openapi(), indent=2))" > ../docs/openapi.json
+  cd backend && python -c "import json; from main import app; print(json.dumps(app.openapi(), indent=2))" > ../docs/openapi.json
   ```
 
 ## 끝내기 전 확인

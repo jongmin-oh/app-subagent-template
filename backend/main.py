@@ -1,0 +1,21 @@
+import uvicorn
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from mangum import Mangum
+
+from app.routers import get_routers
+
+app = FastAPI()
+for router in get_routers():
+    app.include_router(router)
+
+
+@app.exception_handler(Exception)
+def upstream_error(_: Request, exc: Exception) -> JSONResponse:
+    return JSONResponse(status_code=502, content={"detail": f"{type(exc).__name__}: {exc}"})
+
+
+lambda_handler = Mangum(app)
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
