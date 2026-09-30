@@ -6,13 +6,14 @@ type GoogleLoginRequest = components["schemas"]["GoogleLoginRequest"];
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-export async function loginWithGoogle(idToken: string): Promise<LoginResponse> {
+export async function loginWithGoogle(idToken: string): Promise<LoginResponse | null> {
   const body: GoogleLoginRequest = { id_token: idToken };
   const res = await fetch(`${API_URL}/auth/google`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+  if (!res.ok) return null;
   return res.json();
 }
 

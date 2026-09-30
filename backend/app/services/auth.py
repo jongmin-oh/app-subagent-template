@@ -38,7 +38,7 @@ def _verify_google_token(id_token: str) -> dict:
             algorithms=["RS256"],
             audience=os.environ["GOOGLE_WEB_CLIENT_ID"],
             issuer=GOOGLE_ISSUERS,
-            options={"require": ["exp", "iss", "aud", "sub"]},
+            options={"require": ["exp", "iss", "aud", "sub", "email"]},
         )
     except jwt.PyJWTError as e:
         raise _unauthorized() from e
@@ -79,4 +79,6 @@ def get_user_by_token(access_token: str) -> User:
         row = conn.execute(
             "SELECT id::text, email, name FROM users WHERE id = %s", (claims["sub"],)
         ).fetchone()
+    if row is None:
+        raise _unauthorized()
     return User(**row)

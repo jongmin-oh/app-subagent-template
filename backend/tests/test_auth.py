@@ -23,6 +23,7 @@ USER_ID = "11111111-1111-1111-1111-111111111111"
 class FakeConn:
     def __init__(self) -> None:
         self.params: list[tuple] = []
+        self.user_exists = True
 
     def __enter__(self) -> Self:
         return self
@@ -35,7 +36,11 @@ class FakeConn:
         if len(params) == 3:  # upsert: (google_sub, email, name)
             row = {"id": USER_ID, "email": params[1], "name": params[2]}
         else:
-            row = {"id": USER_ID, "email": "a@example.com", "name": "Alice"}
+            row = (
+                {"id": USER_ID, "email": "a@example.com", "name": "Alice"}
+                if self.user_exists
+                else None
+            )
         return SimpleNamespace(fetchone=lambda: row)
 
 
@@ -101,6 +106,12 @@ def test_login_without_name_saves_empty(db: FakeConn) -> None:
     assert res.json()["user"]["name"] == ""
 
 
+def test_login_without_email_is_unauthorized(db: FakeConn) -> None:
+    res = client.post("/auth/google", json={"id_token": google_token(email=None)})
+    assert res.status_code == 401
+    assert db.params == []
+
+
 def test_me_ok(db: FakeConn) -> None:
     token = client.post("/auth/google", json={"id_token": google_token()}).json()[
         "access_token"
@@ -109,6 +120,12 @@ def test_me_ok(db: FakeConn) -> None:
     assert res.status_code == 200
     assert res.json() == {"id": USER_ID, "email": "a@example.com", "name": "Alice"}
     assert db.params[-1] == (USER_ID,)
+
+
+def test_me_returns_unauthorized_when_user_no_longer_exists(db: FakeConn) -> None:
+    token = jwt.encode({"sub": USER_ID, "exp": int(time.time()) + 600}, SECRET)
+    db.user_exists = False
+    assert client.get("/me", headers={"Authorization": f"Bearer {token}"}).status_code == 401
 
 
 @pytest.mark.parametrize(

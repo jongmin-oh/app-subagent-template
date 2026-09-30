@@ -44,7 +44,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await GoogleSignin.signIn();
     // ponytail: cancelled or no idToken -> stay on sign-in screen
     if (!isSuccessResponse(res) || !res.data.idToken) return;
-    const { access_token, user } = await loginWithGoogle(res.data.idToken);
+    const login = await loginWithGoogle(res.data.idToken);
+    if (!login) return;
+    const { access_token, user } = login;
     await SecureStore.setItemAsync(TOKEN_KEY, access_token);
     setUser(user);
   }

@@ -71,6 +71,16 @@ test("sign-in posts id_token, stores token, and goes home", async () => {
   expect(store.setItemAsync).toHaveBeenCalledWith("access_token", "server-token");
 });
 
+test("stays on sign-in when the backend rejects login", async () => {
+  respond(401, { detail: "Invalid token" });
+  renderApp();
+  await waitFor(() => expect(signInButton()).not.toBeNull());
+  fireEvent.press(signInButton()!);
+  await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+  expect(signInButton()).not.toBeNull();
+  expect(store.setItemAsync).not.toHaveBeenCalled();
+});
+
 test("sign-out deletes token, calls signOut, and shows sign-in", async () => {
   store.getItemAsync.mockResolvedValue("saved-token");
   respond(200, user);

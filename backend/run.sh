@@ -2,9 +2,6 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-STACK=backend-template
-REGION=ap-northeast-2
-
-# 백엔드: 빌드 + 배포 (지침 문서를 Lambda 패키지에 포함)
+# 백엔드 빌드 + 배포
 sam build
 sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
