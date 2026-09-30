@@ -24,7 +24,7 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 ## 작업 규칙
 
 - `any` 금지. 타입 단언(`as`)은 꼭 필요할 때만 쓰고 이유를 주석으로 남깁니다.
-- 색상·간격·타이포는 `mobile/src/theme/`의 토큰만 사용합니다. 하드코딩한 값을 쓰지 않습니다.
+- 색상·간격·타이포는 `mobile/src/theme/`의 토큰만 사용합니다. 하드코딩한 값을 쓰지 않습니다. 디자인 규칙은 `mobile/design-system.md`를 따릅니다.
 - 화면은 `src/app/`(Expo Router), 재사용 UI는 `src/components/`에 둡니다. `src/app/`에는 화면과 `_layout.tsx`만 둡니다.
 
 ## 끝내기 전 확인

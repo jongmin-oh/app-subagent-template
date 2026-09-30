@@ -97,6 +97,7 @@ mobile/          # Expo 앱 (frontend 에이전트 담당)
     theme/       # 디자인 토큰 (색상, 간격, 타이포)
     api/         # openapi.json에서 생성된 타입 + API 클라이언트
   __tests__/     # 모바일 테스트 (tester 에이전트 담당)
+  design-system.md # 디자인 시스템 가이드 (frontend 담당)
   CLAUDE.md      # Expo 공식 에이전트 지침 (create-expo-app 생성)
 backend/         # FastAPI (backend 에이전트 담당)
   app/
