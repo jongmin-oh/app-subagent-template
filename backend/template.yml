@@ -20,6 +20,7 @@ Resources:
       Environment:
         Variables:
           TZ: Asia/Seoul
+          DSQL_ENDPOINT: !GetAtt DsqlCluster.Endpoint
       Policies:
         - Statement:
             - Effect: Allow
@@ -31,6 +32,9 @@ Resources:
               Condition:
                 StringEquals:
                   kms:ViaService: !Sub 'ssm.${AWS::Region}.amazonaws.com'
+            - Effect: Allow
+              Action: dsql:DbConnectAdmin
+              Resource: !GetAtt DsqlCluster.ResourceArn
 
       FunctionUrlConfig:
         AuthType: NONE
@@ -39,8 +43,19 @@ Resources:
           AllowMethods: ['*']
           AllowHeaders: ['*']
 
+  DsqlCluster:
+    Type: AWS::DSQL::Cluster
+    Properties:
+      DeletionProtectionEnabled: false
+
 
 Outputs:
   FunctionUrl:
     Description: Invoke URL for backend-template
     Value: !GetAtt LambdaFunctionUrl.FunctionUrl
+  DsqlClusterIdentifier:
+    Description: Aurora DSQL cluster identifier
+    Value: !GetAtt DsqlCluster.Identifier
+  DsqlEndpoint:
+    Description: Aurora DSQL cluster endpoint
+    Value: !GetAtt DsqlCluster.Endpoint
