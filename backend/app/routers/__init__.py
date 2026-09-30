@@ -1,13 +1,12 @@
 import importlib
 import pkgutil
-from typing import List
 
 from fastapi import APIRouter
 
 
-def get_routers() -> List[APIRouter]:
+def get_routers() -> list[APIRouter]:
     """라우터 모듈을 순회하며 APIRouter 인스턴스를 모읍니다."""
-    routers: List[APIRouter] = []
+    routers: list[APIRouter] = []
     for module_info in pkgutil.iter_modules(__path__, prefix=f"{__name__}."):
         # __init__ 자체는 스킵
         if module_info.name.endswith(".__init__"):

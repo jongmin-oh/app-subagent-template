@@ -12,7 +12,9 @@ for router in get_routers():
 
 @app.exception_handler(Exception)
 def upstream_error(_: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(status_code=502, content={"detail": f"{type(exc).__name__}: {exc}"})
+    return JSONResponse(
+        status_code=502, content={"detail": f"{type(exc).__name__}: {exc}"}
+    )
 
 
 lambda_handler = Mangum(app)
