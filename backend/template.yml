@@ -1,6 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  GoogleWebClientId:
+    Type: String
+    Default: ''
+    Description: Google OAuth Web Client ID (ID 토큰 aud 검증용)
 
 Globals:
   Function:
@@ -21,11 +26,12 @@ Resources:
         Variables:
           TZ: Asia/Seoul
           DSQL_ENDPOINT: !GetAtt DsqlCluster.Endpoint
+          GOOGLE_WEB_CLIENT_ID: !Ref GoogleWebClientId
       Policies:
         - Statement:
             - Effect: Allow
-              Action: ssm:GetParametersByPath
-              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*'
+              Action: ssm:GetParameter
+              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/backend-template/JWT_SECRET'
             - Effect: Allow
               Action: kms:Decrypt
               Resource: '*'
