@@ -17,6 +17,7 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 - 라우터(`app/routers/`)는 얇게 유지하고 비즈니스 로직은 `app/services/`에 둡니다.
 - Lambda 콜드 스타트를 고려해 모듈 최상위에서 무거운 초기화를 하지 않습니다.
 - CORS는 Function URL 설정(IaC) 한 곳에서만 관리합니다. FastAPI `CORSMiddleware`와 함께 쓰면 헤더가 중복됩니다.
+- CORS 허용 출처에는 웹 배포 URL, 개발 서버, iOS `capacitor://localhost`, Android `https://localhost`를 포함합니다. 실제 scheme/hostname 변경 시 함께 갱신합니다.
 - 환경변수·비밀값은 IaC에서 주입합니다. 코드나 `.env` 커밋에 비밀값을 넣지 않습니다.
 - 엔드포인트의 경로, 파라미터, 응답 모델이 바뀌면 **반드시** 스펙을 다시 내보냅니다:
   ```bash

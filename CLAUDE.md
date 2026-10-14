@@ -82,7 +82,9 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## 스택
 
-- **모바일**: Expo (React Native, TypeScript, Expo Router)
+- **프론트엔드**: React SPA + TypeScript strict + Vite 8 → 웹 / Capacitor 8 (iOS·Android)
+- **라우팅·상태·스타일**: React Router 7 (`react-router`), TanStack Query 5, Zustand 5, Tailwind CSS 4
+- **개발 환경**: Node.js 22.12+, iOS 빌드는 macOS + Xcode 26+. 상세: `docs/frontend-stack.md`
 - **백엔드**: FastAPI (Python 3.13) → AWS Lambda (Mangum 어댑터) + Lambda Function URL
 - **인프라**: AWS SAM
 - **DB**: <!-- TODO: DynamoDB / RDS(Postgres) 등 -->
@@ -90,15 +92,19 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## 폴더 구조
 
 ```
-mobile/          # Expo 앱 (frontend 에이전트 담당)
+mobile/          # React SPA + Capacitor 앱 (frontend 에이전트 담당)
   src/
-    app/         # Expo Router 화면 (화면과 _layout.tsx만)
+    app/         # App.tsx의 명시적 라우트, 화면, NativeLifecycle
     components/
-    theme/       # 디자인 토큰 (색상, 간격, 타이포)
+    theme/       # styles.css: Tailwind 테마·디자인 토큰·공통 CSS
     api/         # openapi.json에서 생성된 타입 + API 클라이언트
-  __tests__/     # 모바일 테스트 (tester 에이전트 담당)
+  __tests__/     # Vitest + React Testing Library (tester 에이전트 담당)
   design-system.md # 디자인 시스템 가이드 (frontend 담당)
-  CLAUDE.md      # Expo 공식 에이전트 지침 (create-expo-app 생성)
+  capacitor.config.ts # appId, webDir: dist, 네이티브 플러그인 설정
+  ios/          # Capacitor iOS 프로젝트 (SPM)
+  android/      # Capacitor Android 프로젝트
+  AGENTS.md     # React + Capacitor 작업 지침
+  CLAUDE.md      # @AGENTS.md 참조
 backend/         # FastAPI (backend 에이전트 담당)
   app/
     routers/
@@ -109,7 +115,8 @@ backend/         # FastAPI (backend 에이전트 담당)
   run.sh         # sam build + deploy
   tests/         # 백엔드 테스트 (tester 에이전트 담당)
 docs/
-  spec.md        # 기능 요구사항, 우선순위
+  frontend-stack.md # 프론트엔드 스택·설정·배포·검증 가이드
+  spec.md        # 기능 요구사항, 우선순위 (기능 정의 시 작성)
   openapi.json   # ★ 프론트-백엔드 계약 파일
   db-schema.md   # ★ DB 테이블 스키마 문서 (backend 에이전트 담당)
 ```
@@ -158,10 +165,14 @@ cd backend && uvicorn main:app --reload          # 로컬 실행
 cd backend && pytest                              # 테스트
 cd backend && ruff check . && ruff format .      # 린트/포맷
 
-# 모바일
-cd mobile && npx expo start                       # 개발 서버
-cd mobile && npm test                             # 테스트 (jest-expo + RNTL)
-cd mobile && npx tsc --noEmit && npx eslint .    # 타입체크/린트
+# 프론트엔드 (Node.js 22.12+)
+cd mobile && npm ci                               # 잠금 버전 설치
+cd mobile && npm run dev                          # 브라우저 개발
+cd mobile && npm test                             # Vitest + React Testing Library
+cd mobile && npm run typecheck && npm run lint     # 타입체크/린트
+cd mobile && npm run sync                         # 빌드 + cap sync
+cd mobile && npm run ios                          # Xcode (Mac 필수)
+cd mobile && npm run android                      # Android Studio
 ```
 
 ## 코딩 규칙
@@ -175,6 +186,7 @@ cd mobile && npx tsc --noEmit && npx eslint .    # 타입체크/린트
 
 - [ ] 관련 테스트 통과
 - [ ] 린트/타입체크 통과
+- [ ] 프론트 변경 시 Vite 빌드 및 관련 플랫폼 동작 확인 (미검증 환경은 보고)
 - [ ] API 변경 시 `docs/openapi.json` 갱신됨
 - [ ] DB 스키마 변경 시 `docs/db-schema.md` 갱신됨
 - [ ] `reviewer` 리뷰에서 치명적 이슈 없음

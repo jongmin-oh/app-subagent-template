@@ -28,7 +28,11 @@ tools: Read, Grep, Glob, Bash
 
 **프론트엔드**
 - TypeScript `any`, 근거 없는 타입 단언
-- 디자인 토큰 대신 하드코딩한 색상·간격
+- `src/theme/styles.css`의 디자인 토큰 대신 하드코딩한 색상·간격
+- `react-router` v7 사용, TanStack Query와 Zustand의 역할 분리
+- Capacitor 플랫폼 분기, backButton 리스너 해제, dialog 우선 닫기, safe area 중복 적용
+- `VITE_*`의 비밀값 노출, 네이티브 보안 저장소와 웹 세션 저장 구분
+- 네이티브 프로젝트·플러그인 설정과 `webDir: dist`의 일치
 
 **개발 수칙 (CLAUDE.md)**
 - 요청받지 않은 기능, 미래를 대비한 확장·추상화가 들어갔는가
@@ -41,7 +45,7 @@ tools: Read, Grep, Glob, Bash
 
 ```bash
 cd backend && ruff check .
-cd mobile && npx tsc --noEmit && npx eslint .
+cd mobile && npm run typecheck && npm run lint && npm run build
 ```
 
 ## 최종 보고 형식

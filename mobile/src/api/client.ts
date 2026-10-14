@@ -4,9 +4,11 @@ type User = components["schemas"]["User"];
 type LoginResponse = components["schemas"]["LoginResponse"];
 type GoogleLoginRequest = components["schemas"]["GoogleLoginRequest"];
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_URL = import.meta.env.VITE_API_URL ?? "/api";
 
-export async function loginWithGoogle(idToken: string): Promise<LoginResponse | null> {
+export async function loginWithGoogle(
+  idToken: string,
+): Promise<LoginResponse | null> {
   const body: GoogleLoginRequest = { id_token: idToken };
   const res = await fetch(`${API_URL}/auth/google`, {
     method: "POST",

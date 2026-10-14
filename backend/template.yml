@@ -2,6 +2,10 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Parameters:
+  AllowedOrigins:
+    Type: CommaDelimitedList
+    Default: "http://localhost:5173,capacitor://localhost,https://localhost"
+    Description: Web and Capacitor origins; include the production web URL when deploying
   GoogleWebClientId:
     Type: String
     Default: ''
@@ -45,7 +49,7 @@ Resources:
       FunctionUrlConfig:
         AuthType: NONE
         Cors:
-          AllowOrigins: ['*']
+          AllowOrigins: !Ref AllowedOrigins
           AllowMethods: ['*']
           AllowHeaders: ['*']
 

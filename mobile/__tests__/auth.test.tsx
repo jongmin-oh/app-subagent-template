@@ -1,134 +1,185 @@
-/// <reference types="jest" />
-import { fireEvent, screen, waitFor } from "@testing-library/react-native";
-import { renderRouter } from "expo-router/testing-library";
-import * as SecureStore from "expo-secure-store";
-import { GoogleSignin, GoogleSigninButton } from "@react-native-google-signin/google-signin";
+import { StrictMode } from "react";
+import { beforeEach, expect, test, vi } from "vitest";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { App } from "@/app/App";
+import { tokenStorage } from "@/api/token";
+import { googleSignIn, googleSignOut } from "@/api/google";
+import { useNotifications } from "@/components/Notifications";
 import type { components } from "@/api/schema";
 
-jest.mock("expo-secure-store", () => ({
-  getItemAsync: jest.fn(),
-  setItemAsync: jest.fn(),
-  deleteItemAsync: jest.fn(),
+vi.mock("@/api/token", () => ({
+  tokenStorage: { get: vi.fn(), set: vi.fn(), remove: vi.fn() },
 }));
-
-const user: components["schemas"]["User"] = { id: "u1", email: "a@example.com", name: "Alice" };
-const login: components["schemas"]["LoginResponse"] = { access_token: "server-token", user };
-
-const store = jest.mocked(SecureStore);
-const fetchMock = jest.fn();
-globalThis.fetch = fetchMock;
-
-function respond(status: number, body?: unknown) {
-  fetchMock.mockResolvedValueOnce({ ok: status < 400, status, json: async () => body });
+vi.mock("@/api/google", () => ({
+  googleSignIn: vi.fn(),
+  googleSignOut: vi.fn(),
+}));
+const user: components["schemas"]["User"] = {
+  id: "u1",
+  email: "a@example.com",
+  name: "Alice",
+};
+const login: components["schemas"]["LoginResponse"] = {
+  access_token: "server-token",
+  user,
+};
+const fetchMock = vi.fn();
+function respond(status: number, body: unknown) {
+  fetchMock.mockResolvedValueOnce(
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
 }
-
-function renderApp(initialUrl = "/") {
-  renderRouter("src/app", { initialUrl });
+function renderApp(path = "/") {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  render(
+    <StrictMode>
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={[path]}>
+          <App />
+        </MemoryRouter>
+      </QueryClientProvider>
+    </StrictMode>,
+  );
+  return userEvent.setup();
 }
-
-function signedIn(initialUrl = "/") {
-  store.getItemAsync.mockResolvedValue("saved-token");
+function signedIn(path = "/") {
+  vi.mocked(tokenStorage.get).mockResolvedValue("saved-token");
   respond(200, user);
-  renderApp(initialUrl);
+  return renderApp(path);
 }
-
-const signInButton = () => screen.UNSAFE_queryByType(GoogleSigninButton);
-
 beforeEach(() => {
-  jest.clearAllMocks();
-  store.getItemAsync.mockResolvedValue(null);
+  vi.resetAllMocks();
+  vi.stubGlobal("fetch", fetchMock);
+  vi.mocked(tokenStorage.get).mockResolvedValue(null);
+  vi.mocked(googleSignIn).mockResolvedValue("mockIdToken");
+  useNotifications.getState().reset();
 });
-
-test("shows sign-in when no token is stored", async () => {
-  renderApp();
-  await waitFor(() => expect(signInButton()).not.toBeNull());
+test("protected routes show sign-in without a stored token", async () => {
+  renderApp("/my");
+  expect(
+    await screen.findByRole("button", { name: "Google로 로그인" }),
+  ).toBeVisible();
   expect(fetchMock).not.toHaveBeenCalled();
 });
-
-test("shows home with /me result when a token is stored", async () => {
-  store.getItemAsync.mockResolvedValue("saved-token");
-  respond(200, user);
-  renderApp();
-  expect(await screen.findByText("안녕하세요, Alice님")).toBeTruthy();
-  const [url, init] = fetchMock.mock.calls[0];
-  expect(url).toMatch(/\/me$/);
-  expect(init.headers.Authorization).toBe("Bearer saved-token");
+test("restores session with the generated /me contract", async () => {
+  signedIn();
+  expect(await screen.findByText("안녕하세요, Alice님")).toBeVisible();
+  expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/me$/), {
+    headers: { Authorization: "Bearer saved-token" },
+  });
 });
-
-test("deletes token and shows sign-in when /me returns 401", async () => {
-  store.getItemAsync.mockResolvedValue("expired-token");
+test("expired token is removed", async () => {
+  vi.mocked(tokenStorage.get).mockResolvedValue("expired-token");
   respond(401, { detail: "Invalid token" });
   renderApp();
-  await waitFor(() => expect(signInButton()).not.toBeNull());
-  expect(store.deleteItemAsync).toHaveBeenCalledWith("access_token");
+  expect(
+    await screen.findByRole("button", { name: "Google로 로그인" }),
+  ).toBeVisible();
+  expect(tokenStorage.remove).toHaveBeenCalledOnce();
 });
-
-test("sign-in posts id_token, stores token, and goes home", async () => {
+test("Google sign-in exchanges id_token and stores the server token", async () => {
   respond(200, login);
-  renderApp();
-  await waitFor(() => expect(signInButton()).not.toBeNull());
-  fireEvent.press(signInButton()!);
-  expect(await screen.findByText("안녕하세요, Alice님")).toBeTruthy();
-  const [url, init] = fetchMock.mock.calls[0];
-  expect(url).toMatch(/\/auth\/google$/);
-  expect(init.method).toBe("POST");
-  expect(JSON.parse(init.body)).toEqual({ id_token: "mockIdToken" });
-  expect(store.setItemAsync).toHaveBeenCalledWith("access_token", "server-token");
+  const ui = renderApp();
+  await ui.click(
+    await screen.findByRole("button", { name: "Google로 로그인" }),
+  );
+  expect(await screen.findByText("안녕하세요, Alice님")).toBeVisible();
+  expect(fetchMock).toHaveBeenCalledWith(
+    expect.stringMatching(/\/auth\/google$/),
+    expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ id_token: "mockIdToken" }),
+    }),
+  );
+  expect(tokenStorage.set).toHaveBeenCalledWith("server-token");
 });
-
-test("stays on sign-in when the backend rejects login", async () => {
+test("cancelled Google sign-in does not call the backend", async () => {
+  vi.mocked(googleSignIn).mockResolvedValue(null);
+  const ui = renderApp();
+  await ui.click(
+    await screen.findByRole("button", { name: "Google로 로그인" }),
+  );
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Google로 로그인" }),
+    ).toBeEnabled(),
+  );
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+test("rejected login stays signed out", async () => {
   respond(401, { detail: "Invalid token" });
-  renderApp();
-  await waitFor(() => expect(signInButton()).not.toBeNull());
-  fireEvent.press(signInButton()!);
+  const ui = renderApp();
+  await ui.click(
+    await screen.findByRole("button", { name: "Google로 로그인" }),
+  );
   await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-  expect(signInButton()).not.toBeNull();
-  expect(store.setItemAsync).not.toHaveBeenCalled();
+  expect(screen.getByRole("button", { name: "Google로 로그인" })).toBeVisible();
+  expect(tokenStorage.set).not.toHaveBeenCalled();
 });
-
-test("MY shows profile and cancel closes the logout modal", async () => {
-  const signOut = jest.spyOn(GoogleSignin, "signOut");
-  signedIn("/my");
-  expect(await screen.findByText("a@example.com")).toBeTruthy();
-  fireEvent.press(screen.getByRole("button", { name: "로그아웃" }));
-  expect(screen.getByText("로그아웃할까요?")).toBeTruthy();
-  fireEvent.press(screen.getByRole("button", { name: "취소" }));
-  expect(screen.queryByText("로그아웃할까요?")).toBeNull();
-  expect(signOut).not.toHaveBeenCalled();
-  expect(store.deleteItemAsync).not.toHaveBeenCalled();
+test("logout modal can be cancelled", async () => {
+  const ui = signedIn("/my");
+  expect(await screen.findByText("a@example.com")).toBeVisible();
+  await ui.click(screen.getByRole("button", { name: "로그아웃" }));
+  await ui.click(screen.getByRole("button", { name: "취소" }));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(googleSignOut).not.toHaveBeenCalled();
+  expect(tokenStorage.remove).not.toHaveBeenCalled();
 });
-
-test("sign-out confirmed in modal deletes token, calls signOut, and shows sign-in", async () => {
-  const signOut = jest.spyOn(GoogleSignin, "signOut");
-  signedIn("/my");
-  fireEvent.press(await screen.findByRole("button", { name: "로그아웃" }));
-  const buttons = screen.getAllByRole("button", { name: "로그아웃" });
-  fireEvent.press(buttons[buttons.length - 1]);
-  await waitFor(() => expect(signInButton()).not.toBeNull());
-  expect(store.deleteItemAsync).toHaveBeenCalledWith("access_token");
-  expect(signOut).toHaveBeenCalled();
+test("confirmed logout clears credentials and protected screens", async () => {
+  const ui = signedIn("/my");
+  await ui.click(await screen.findByRole("button", { name: "로그아웃" }));
+  await ui.click(
+    within(screen.getByRole("dialog")).getByRole("button", {
+      name: "로그아웃",
+    }),
+  );
+  expect(
+    await screen.findByRole("button", { name: "Google로 로그인" }),
+  ).toBeVisible();
+  expect(tokenStorage.remove).toHaveBeenCalledOnce();
+  expect(googleSignOut).toHaveBeenCalledOnce();
 });
-
-test("checking a task updates home progress", async () => {
-  signedIn();
-  expect(await screen.findByText("25%")).toBeTruthy();
-  fireEvent.press(screen.getByRole("checkbox", { name: /주간 회고 작성/ }));
-  expect(screen.getByText("50%")).toBeTruthy();
-  expect(screen.getByRole("checkbox", { name: /주간 회고 작성/ })).toBeChecked();
+test("checking a task updates progress", async () => {
+  const ui = signedIn();
+  expect(await screen.findByText("25%")).toBeVisible();
+  await ui.click(screen.getByRole("checkbox", { name: /주간 회고 작성/ }));
+  expect(screen.getByText("50%")).toBeVisible();
+  expect(
+    screen.getByRole("checkbox", { name: /주간 회고 작성/ }),
+  ).toBeChecked();
 });
-
 test("bottom sheet adds a task", async () => {
-  signedIn();
-  fireEvent.press(await screen.findByRole("button", { name: "할 일 추가" }));
-  fireEvent.changeText(screen.getByPlaceholderText("무엇을 할까요?"), "장보기");
-  fireEvent.press(screen.getByRole("button", { name: "추가하기" }));
-  expect(screen.getByRole("checkbox", { name: /장보기/ })).toBeTruthy();
-  expect(screen.getByText("20%")).toBeTruthy();
-  expect(screen.getByText("할 일이 추가됐어요")).toBeTruthy();
+  const ui = signedIn();
+  await ui.click(await screen.findByRole("button", { name: "할 일 추가" }));
+  await ui.type(screen.getByPlaceholderText("무엇을 할까요?"), "장보기");
+  await ui.click(screen.getByRole("button", { name: "추가하기" }));
+  expect(screen.getByRole("checkbox", { name: /장보기/ })).toBeVisible();
+  expect(screen.getByText("20%")).toBeVisible();
+  expect(screen.getByRole("status")).toHaveTextContent("할 일이 추가됐어요");
 });
-
-test("activity mark all as read", async () => {
-  signedIn("/activity");
-  fireEvent.press(await screen.findByRole("button", { name: "모두 읽음" }));
-  expect(screen.getByText("모두 읽음 처리했어요")).toBeTruthy();
+test("reading notifications clears the shared tab badge", async () => {
+  const ui = signedIn("/activity");
+  await ui.click(await screen.findByRole("button", { name: "모두 읽음" }));
+  expect(screen.getByRole("status")).toHaveTextContent("모두 읽음 처리했어요");
+  expect(screen.queryByLabelText("읽지 않은 알림 2개")).not.toBeInTheDocument();
+});
+test("explore filters and toggles favorites", async () => {
+  const ui = signedIn("/explore");
+  await ui.click(await screen.findByRole("button", { name: "음악" }));
+  expect(screen.queryByText("미니멀 작업실")).not.toBeInTheDocument();
+  await ui.type(screen.getByRole("searchbox"), "밤");
+  expect(screen.queryByText("집중 사운드")).not.toBeInTheDocument();
+  const favorite = screen.getByRole("button", {
+    name: "밤의 플레이리스트 즐겨찾기",
+  });
+  await ui.click(favorite);
+  expect(favorite).toHaveAttribute("aria-pressed", "true");
 });

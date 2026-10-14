@@ -1,41 +1,43 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+# React + Capacitor 작업 지침
 
-## Expo has changed — do not trust your training data
+이 디렉터리는 React SPA를 Vite로 빌드하고 Capacitor 8로 iOS·Android에 담는 앱입니다. 웹과 앱은 같은 `dist/`를 사용합니다.
+상세 스택·환경·플랫폼 설정은 `../docs/frontend-stack.md`, 디자인은 `design-system.md`를 따릅니다.
 
-Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
+## 스택과 구조
 
-1. Read the major version of the `expo` package in `package.json`.
-2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
-3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
+- TypeScript strict, React DOM, Vite 8, React Router 7, TanStack Query 5, Zustand 5, Tailwind CSS 4.
+- Node.js 22.12+를 사용합니다. 의존성은 `npm ci`, 변경 시 `npm install` 후 lockfile을 함께 갱신합니다.
+- `src/main.tsx`는 브라우저 진입점, `src/app/App.tsx`는 명시적 라우트입니다. 라우터 import는 `react-router`에서 합니다.
+- 화면은 `src/app/`, 공용 UI는 `src/components/`, 서버 계약·인증은 `src/api/`에 둡니다.
+- 서버 상태는 TanStack Query, 공유 클라이언트 상태는 Zustand, 지역 상태는 React state를 사용합니다.
+- `src/theme/styles.css`가 색상·간격·라운드·타이포·폰트의 기준입니다. HTML의 의미와 키보드 접근성을 유지합니다.
 
-## Commands
+## 네이티브 연동
 
-Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
+- Capacitor API를 추가할 때 설치된 메이저 버전에 맞는 공식 문서를 확인합니다: https://capacitorjs.com/docs
+- 공식 플러그인은 8.x 호환 버전을 사용합니다. 서드파티 플러그인은 Capacitor peer dependency를 따로 확인합니다.
+- 웹/앱 분기는 `Capacitor.isNativePlatform()`, OS 분기는 `Capacitor.getPlatform()`을 사용합니다.
+- SystemBars는 core 내장입니다. `viewport-fit=cover`, CSS safe area와 함께 적용하며 inset을 두 번 더하지 않습니다.
+- Android backButton은 열린 dialog → 앱 라우트 뒤로가기 → 루트 종료 순서로 처리하고 리스너를 해제합니다.
+- iOS/Android 프로젝트는 버전 관리합니다. 플러그인·웹 변경 후 빌드하고 sync합니다.
+- iOS는 SPM, macOS + Xcode 26+가 필요합니다. Android는 Android Studio에서 빌드합니다.
+- Google 로그인 및 토큰 저장은 기존 `src/api/google.ts`, `token.ts`를 사용합니다. 네이티브 JWT를 Preferences에 저장하지 않습니다.
+- `VITE_*`는 공개 빌드 설정이며 비밀값을 담지 않습니다. 환경변수를 바꾸면 재빌드합니다.
+
+## 명령어 (mobile/에서)
 
 ```bash
-npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
-npx expo start              # start the dev server
-npx expo lint               # lint
-npx tsc --noEmit            # typecheck
-npx expo-doctor             # diagnose dependency and config issues
-npx expo install --fix      # fix incompatible package versions
+npm ci
+npm run dev
+npm run api:types
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run sync
+npm run ios
+npm run android
 ```
 
-Run lint and typecheck before declaring any task done.
-
-## Navigation & Routing
-
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
-
-## Building with EAS
-
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
-
-## Rules
-
-- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
-- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+완료 전 타입체크·린트·관련 테스트·빌드를 실행하고, 네이티브 SDK나 OAuth 설정이 없어 확인하지 못한 동작은 구분해 보고합니다.
+OTA는 Capgo/Capawesome 중 선택 후 구성합니다. 플러그인·권한·네이티브 코드 변경은 새 바이너리가 필요합니다.

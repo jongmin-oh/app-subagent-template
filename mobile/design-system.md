@@ -1,13 +1,13 @@
 # Umbra Design System (Dark)
 
-토큰 코드: `src/theme/index.ts` — 색상·간격·라운드·타이포는 여기 값만 사용 (하드코딩 금지).
+토큰 코드: `src/theme/styles.css` — 색상·간격·라운드·타이포는 여기 값만 사용 (하드코딩 금지).
 
 ## 원칙
 - 배경은 순수 검정 대신 보라빛 블랙(`#09080D`). 표면이 밝을수록 위 레이어.
 - 보라색은 브랜드·강조·선택 상태에만.
 - 깊이는 그림자 대신 **표면 밝기 + 1px 보더**. 최상위 강조에만 보라 글로우.
 - 서체는 Pretendard 단일. 큰 제목은 자간 좁게, 본문은 넉넉한 행간.
-- 최소 터치 영역 44pt. 텍스트 대비 WCAG AA.
+- 최소 터치 영역 44 CSS px. 텍스트 대비 WCAG AA.
 
 ## 컬러
 | 토큰 | 값 | 용도 |
@@ -28,7 +28,7 @@
 Display 34/42 Bold -2.5% · Title1 28/36 Bold -2% · Title2 22/30 SemiBold · Title3 18/26 SemiBold · Body1 16/24 · Body2 14/22 · Caption 12/18 Medium · Overline 11/16 SemiBold +8% 대문자
 
 ## 간격 · 라운드
-- Spacing (4pt): 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 48
+- Spacing (4px): 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 48
 - Radius: xs 6 · sm 10 · md 14 · lg 20 · xl 28 · full
 
 ## Elevation
@@ -46,3 +46,12 @@ Display 34/42 Bold -2.5% · Title1 28/36 Bold -2% · Title2 22/30 SemiBold · Ti
 - **칩**: 선택 시 violet 20% 배경 + violet400 보더 + violet100 글자, 미선택 lineStrong 보더 + textSecondary.
 - **탭바**: 선택 textBrand, 미선택 textTertiary.
 - **토스트/모달/바텀시트**: e2/e3 규칙 적용.
+
+## 웹·하이브리드 적용
+
+- Tailwind CSS 4의 `@theme` 토큰과 공통 CSS를 사용합니다. Ionic React는 기본 의존성이 아니며 도입 시 React Router 호환성을 확인합니다.
+- Pretendard는 `@font-face`로 굵기별 로드하고, React DOM에서는 CSS `font-weight`로 지정합니다.
+- `viewport-fit=cover`와 `--safe-*` 변수를 사용합니다. SystemBars의 `--safe-area-inset-*`가 있으면 우선 사용하고 CSS `env()`를 fallback으로 사용합니다.
+- `100dvh`로 화면 높이를 처리하고 하단 탭·시트에는 bottom safe area를 반영합니다.
+- 버튼·탭에서만 텍스트 선택·길게 누르기 메뉴·탭 하이라이트를 억제합니다. 입력과 본문 복사, 키보드 포커스는 유지합니다.
+- 모달은 HTML `dialog`를 사용해 포커스 격리·Escape 닫기를 제공하고, 닫을 때 이전 포커스를 복원합니다.
