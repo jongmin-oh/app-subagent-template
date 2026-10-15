@@ -178,7 +178,7 @@ cd mobile && npm run android                      # Android Studio
 ## 코딩 규칙
 
 - **Python**: 타입 힌트 필수, 요청/응답은 모두 Pydantic 스키마, 라우터에 비즈니스 로직 넣지 않기(services로 분리)
-- **TypeScript**: `strict` 모드, `any` 금지, 색상·간격은 `src/theme/`의 토큰만 사용 (하드코딩 금지)
+- **TypeScript**: `strict` 모드, `any` 금지, 스타일 값은 하드코딩하지 않고 `mobile/design-system.md` 규칙을 따름
 - **Lambda**: 핸들러 밖에서 무거운 초기화 피하기(콜드 스타트), 환경변수는 `.env`가 아닌 IaC에서 주입
 - **비밀값**: 코드·커밋에 절대 포함하지 않기
 

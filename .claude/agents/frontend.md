@@ -26,10 +26,9 @@ tools: Read, Edit, Write, Bash, Grep, Glob
 ## 작업 규칙
 
 - `any` 금지. 타입 단언(`as`)은 꼭 필요할 때만 쓰고 이유를 주석으로 남깁니다.
-- 색상·간격·타이포는 `mobile/src/theme/`의 토큰만 사용합니다. 하드코딩한 값을 쓰지 않습니다. 디자인 규칙은 `mobile/design-system.md`를 따릅니다.
+- 스타일 값은 하드코딩하지 않고 `mobile/design-system.md` 규칙을 따릅니다.
 - 화면과 라우트는 `src/app/`, 재사용 UI는 `src/components/`, API와 인증은 `src/api/`에 둡니다. `App.tsx`에 라우트를 명시합니다.
 - 라우터는 `react-router`에서 import합니다. Declarative 모드를 기본으로 하고 필요 시 Data 모드를 사용합니다.
-- React DOM과 HTML 요소를 사용하고, 스타일은 `src/theme/styles.css`의 토큰을 참조합니다. Ionic React가 필요하면 라우터 peer dependency와 v7 호환성을 먼저 확인합니다.
 - 서버 데이터는 TanStack Query, 공유 UI 상태는 Zustand, 화면 한정 상태는 React state로 관리합니다.
 - 네이티브 API는 `Capacitor.isNativePlatform()`으로 분기합니다. Android backButton 리스너는 해제하고, 열린 dialog를 먼저 닫은 뒤 라우터 뒤로가기를 처리합니다.
 - SystemBars는 `@capacitor/core`에서 import합니다. CSS safe area, Android edge-to-edge, iOS·Android 실기기 동작을 확인합니다.

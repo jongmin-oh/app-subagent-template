@@ -11,7 +11,6 @@
 - 화면은 `src/app/`, 공용 UI는 `src/components/`, 서버 계약·인증은 `src/api/`에 둡니다.
 - `src/` 안의 모듈은 상대 경로(`./`, `../`) 대신 `@/` 별칭으로 import합니다. 예: `import Home from "@/app/Home"`.
 - 서버 상태는 TanStack Query, 공유 클라이언트 상태는 Zustand, 지역 상태는 React state를 사용합니다.
-- `src/theme/styles.css`가 색상·간격·라운드·타이포·폰트의 기준입니다. HTML의 의미와 키보드 접근성을 유지합니다.
 
 ## 네이티브 연동
 
