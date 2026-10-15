@@ -2,12 +2,12 @@ import { NavLink, Navigate, Outlet, Route, Routes } from "react-router";
 import { Bell, Compass, Home as HomeIcon, User } from "lucide-react";
 import { AuthProvider, useAuth } from "@/api/auth";
 import { useNotifications } from "@/components/Notifications";
-import { NativeLifecycle } from "./NativeLifecycle";
-import Home from "./Home";
-import Explore from "./Explore";
-import Activity from "./Activity";
-import My from "./My";
-import SignIn from "./SignIn";
+import { NativeLifecycle } from "@/app/NativeLifecycle";
+import Home from "@/app/Home";
+import Explore from "@/app/Explore";
+import Activity from "@/app/Activity";
+import My from "@/app/My";
+import SignIn from "@/app/SignIn";
 
 function Layout() {
   const unread = useNotifications(

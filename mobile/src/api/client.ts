@@ -1,4 +1,4 @@
-import type { components } from "./schema";
+import type { components } from "@/api/schema";
 
 type User = components["schemas"]["User"];
 type LoginResponse = components["schemas"]["LoginResponse"];
