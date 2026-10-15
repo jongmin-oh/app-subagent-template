@@ -115,6 +115,25 @@ Capgo/Capawesome OTA는 아직 설치·연동하지 않았습니다. 공급자�
 - [ ] 실제 앱 가치·기능을 [App Store 4.2 최소 기능 기준](https://developer.apple.com/app-store/review/guidelines/#minimum-functionality)과 대조해 검토
 - [ ] OTA 도입 시 네이티브 호환성과 롤백 확인
 
+### 브라우저 검증 (Playwright)
+
+`flow-reviewer`와 `design-reviewer`가 씁니다. `npm run dev`를 백그라운드로 띄운 뒤, 저장소 밖 임시 경로에 스크립트를 두고 `mobile/`에서 `node --input-type=module - < 스크립트.mjs`로 실행합니다(그래야 `mobile/node_modules`의 playwright를 찾습니다). 브라우저가 없으면 `npx playwright install chromium`.
+
+Google 로그인은 자동화할 수 없으므로 웹 토큰과 `/me` 응답을 목으로 넣습니다. 다른 API도 같은 방식으로 `docs/openapi.json` 형태의 응답을 넣습니다.
+
+```js
+import { chromium } from "playwright";
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+page.on("console", (m) => m.type() === "error" && console.log("console error:", m.text()));
+await page.route("**/api/me", (r) => r.fulfill({ json: { id: "u1", email: "test@example.com", name: "테스트" } }));
+await page.addInitScript(() => sessionStorage.setItem("access_token", "test-token"));
+await page.goto("http://localhost:5173/");
+await page.getByRole("link", { name: "탐색" }).click();
+await page.screenshot({ path: "/tmp/explore.png" });
+await browser.close();
+```
+
 적합한 서비스는 쇼핑·커뮤니티·예약·사내 도구·대시보드·콘텐츠 중심 앱입니다. 고성능 게임·애니메이션·영상 편집은 요구 성능에 따라 네이티브 구현을 검토합니다.
 
 ## 전환 검증 기록 (2026-10-14)

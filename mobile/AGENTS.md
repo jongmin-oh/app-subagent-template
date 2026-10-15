@@ -7,7 +7,7 @@
 
 - TypeScript strict, React DOM, Vite 8, React Router 7, TanStack Query 5, Zustand 5, Tailwind CSS 4.
 - Node.js 22.12+를 사용합니다. 의존성은 `npm ci`, 변경 시 `npm install` 후 lockfile을 함께 갱신합니다.
-- `src/main.tsx`는 브라우저 진입점, `src/app/App.tsx`는 명시적 라우트입니다. 라우터 import는 `react-router`에서 합니다.
+- `src/main.tsx`는 브라우저 진입점, `src/app/App.tsx`는 명시적 라우트입니다. 라우터 import는 `react-router`에서 하고, Declarative 모드를 기본으로 씁니다.
 - 화면은 `src/app/`, 공용 UI는 `src/components/`, 서버 계약·인증은 `src/api/`에 둡니다.
 - `src/` 안의 모듈은 상대 경로(`./`, `../`) 대신 `@/` 별칭으로 import합니다. 예: `import Home from "@/app/Home"`.
 - 서버 상태는 TanStack Query, 공유 클라이언트 상태는 Zustand, 지역 상태는 React state를 사용합니다.

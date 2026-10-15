@@ -92,20 +92,20 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## 폴더 구조
 
 ```
-mobile/          # React SPA + Capacitor 앱 (frontend 에이전트 담당)
+mobile/          # React SPA + Capacitor 앱
   src/
     app/         # App.tsx의 명시적 라우트, 화면, NativeLifecycle
     components/
     theme/       # styles.css: Tailwind 테마·디자인 토큰·공통 CSS
     api/         # openapi.json에서 생성된 타입 + API 클라이언트
-  __tests__/     # Vitest + React Testing Library (tester 에이전트 담당)
-  design-system.md # 디자인 시스템 가이드 (frontend 담당)
+  __tests__/     # Vitest + React Testing Library
+  design-system.md # 디자인 시스템 가이드
   capacitor.config.ts # appId, webDir: dist, 네이티브 플러그인 설정
   ios/          # Capacitor iOS 프로젝트 (SPM)
   android/      # Capacitor Android 프로젝트
   AGENTS.md     # React + Capacitor 작업 지침
   CLAUDE.md      # @AGENTS.md 참조
-backend/         # FastAPI (backend 에이전트 담당)
+backend/         # FastAPI
   app/
     routers/
     schemas/     # Pydantic 모델
@@ -113,49 +113,43 @@ backend/         # FastAPI (backend 에이전트 담당)
   main.py        # FastAPI 앱 + Lambda 엔트리포인트 (Mangum, main.lambda_handler)
   template.yml   # AWS SAM 템플릿 (Lambda, Function URL, DB 리소스)
   run.sh         # sam build + deploy
-  tests/         # 백엔드 테스트 (tester 에이전트 담당)
+  tests/         # 백엔드 테스트
 docs/
   frontend-stack.md # 프론트엔드 스택·설정·배포·검증 가이드
   spec.md        # 기능 요구사항, 우선순위 (기능 정의 시 작성)
   openapi.json   # ★ 프론트-백엔드 계약 파일
-  db-schema.md   # ★ DB 테이블 스키마 문서 (backend 에이전트 담당)
+  db-schema.md   # ★ DB 테이블 스키마 문서
 ```
 
 ## 역할 분담
 
-메인 세션이 PM 역할을 합니다: 기능을 작은 작업으로 쪼개고, 아래 서브에이전트에 위임하고, 결과를 통합합니다.
+메인 세션이 플래너입니다: 계획을 세우고 코드와 테스트를 직접 작성합니다. 서브에이전트는 리뷰어 3명뿐이며, 모두 파일을 수정하지 않고 보고만 합니다.
 
-| 에이전트 | 담당 폴더 | 하는 일 |
+| 에이전트 | 보는 것 | 기준 |
 |---|---|---|
-| `backend` | `backend/` | API, 비즈니스 로직, DB, Lambda 배포 설정 |
-| `frontend` | `mobile/` | 화면, 컴포넌트, API 연동, 디자인 토큰 준수 |
-| `tester` | `backend/tests/`, `mobile/__tests__/` | 테스트 작성·실행으로 동작 검증 |
-| `reviewer` | 없음 (읽기 전용) | 코드 리뷰: 규칙 준수, 계약 일치, 보안, 설계 |
+| `code-reviewer` | 변경된 코드: 규칙, 계약, 보안, 단순함 | CLAUDE.md, `docs/openapi.json`, `docs/db-schema.md` |
+| `flow-reviewer` | 사용자 동작: 앱을 띄워 실제로 클릭 | `docs/spec.md` |
+| `design-reviewer` | 화면 모양: 코드 규칙 + 스크린샷 | `mobile/design-system.md` |
 
-**원칙**
-- 한 작업에서 한 에이전트는 자기 담당 폴더만 수정합니다.
-- 같은 파일을 두 에이전트가 동시에 수정하지 않습니다.
-- 기능 하나의 기본 순서: `backend` → (openapi.json 갱신) → `frontend` → `tester` + `reviewer`
-- `tester`와 `reviewer`는 수정하는 파일이 겹치지 않으므로 병렬로 실행합니다.
-- `tester`/`reviewer`가 찾은 문제는 메인이 `backend`/`frontend`에 다시 맡겨 고칩니다.
+**순서**: 메인 구현 → 리뷰어 3명 병렬 실행 → 메인이 고침 → 필요하면 다시 리뷰
 
 ## 프론트-백엔드 계약: docs/openapi.json
 
-프론트와 백엔드는 서로 직접 대화하지 않으므로, 이 파일이 유일한 기준입니다.
+프론트와 백엔드 사이의 유일한 기준입니다.
 
-1. `backend`가 엔드포인트를 추가·변경하면 반드시 스펙을 다시 내보냅니다:
+1. 엔드포인트를 추가·변경하면 반드시 스펙을 다시 내보냅니다:
    ```bash
    cd backend && python -c "import json; from main import app; print(json.dumps(app.openapi(), indent=2))" > ../docs/openapi.json
    ```
-2. `frontend`는 스펙에서 타입을 생성해서 씁니다. 타입을 손으로 작성하지 않습니다:
+2. 프론트는 스펙에서 타입을 생성해서 씁니다. 타입을 손으로 작성하지 않습니다:
    ```bash
    cd mobile && npx openapi-typescript ../docs/openapi.json -o src/api/schema.d.ts
    ```
-3. 스펙에 없는 필드나 엔드포인트가 필요하면 `frontend`는 직접 만들지 말고 메인에게 보고합니다.
+3. 프론트에 필요한 필드나 엔드포인트는 백엔드와 스펙에 먼저 추가합니다.
 
 ## DB 스키마 문서: docs/db-schema.md
 
-`backend`는 모든 DB 테이블의 스키마를 `docs/db-schema.md`에 항상 최신으로 유지합니다. 테이블·컬럼·키·인덱스를 추가·변경·삭제할 때마다 같은 작업 안에서 이 문서도 함께 수정합니다.
+모든 DB 테이블의 스키마를 `docs/db-schema.md`에 항상 최신으로 유지합니다. 테이블·컬럼·키·인덱스를 추가·변경·삭제할 때마다 같은 작업 안에서 이 문서도 함께 수정합니다.
 
 ## 명령어
 
@@ -177,10 +171,12 @@ cd mobile && npm run android                      # Android Studio
 
 ## 코딩 규칙
 
-- **Python**: 타입 힌트 필수, 요청/응답은 모두 Pydantic 스키마, 라우터에 비즈니스 로직 넣지 않기(services로 분리)
-- **TypeScript**: `strict` 모드, `any` 금지, 스타일 값은 하드코딩하지 않고 `mobile/design-system.md` 규칙을 따름
+- **Python**: 타입 힌트 필수, 요청/응답은 모두 `app/schemas/`의 Pydantic 스키마, 라우터에 비즈니스 로직 넣지 않기(services로 분리)
+- **TypeScript**: `strict` 모드, `any` 금지, 타입 단언(`as`)은 꼭 필요할 때만 쓰고 이유를 주석으로 남기기, 스타일 값은 하드코딩하지 않고 `mobile/design-system.md` 규칙을 따름
 - **Lambda**: 핸들러 밖에서 무거운 초기화 피하기(콜드 스타트), 환경변수는 `.env`가 아닌 IaC에서 주입
+- **CORS**: Function URL 설정(IaC) 한 곳에서만 관리. FastAPI `CORSMiddleware`와 함께 쓰면 헤더가 중복됨. 허용 출처에 웹 배포 URL, 개발 서버, iOS `capacitor://localhost`, Android `https://localhost` 포함
 - **비밀값**: 코드·커밋에 절대 포함하지 않기
+- **테스트**: 요청받은 기능의 정상 흐름만 검증(에러 처리가 없으므로 실패 케이스 테스트는 추가하지 않음). 백엔드는 pytest + FastAPI `TestClient`, AWS는 moto 등 목으로 대체. 프론트는 Vitest + React Testing Library로 보이는 텍스트·역할 기준으로 쿼리하고, API 목 응답은 `src/api/schema.d.ts` 타입을 따름
 
 ## 완료 기준 (Definition of Done)
 
@@ -189,4 +185,4 @@ cd mobile && npm run android                      # Android Studio
 - [ ] 프론트 변경 시 Vite 빌드 및 관련 플랫폼 동작 확인 (미검증 환경은 보고)
 - [ ] API 변경 시 `docs/openapi.json` 갱신됨
 - [ ] DB 스키마 변경 시 `docs/db-schema.md` 갱신됨
-- [ ] `reviewer` 리뷰에서 치명적 이슈 없음
+- [ ] `code-reviewer`·`flow-reviewer`·`design-reviewer` 리뷰에서 치명적 이슈 없음
