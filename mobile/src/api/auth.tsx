@@ -4,7 +4,6 @@ import type { components } from "@/api/schema";
 import { getMe, loginWithGoogle } from "@/api/client";
 import { tokenStorage } from "@/api/token";
 import { googleSignIn, googleSignOut } from "@/api/google";
-import { useNotifications } from "@/components/Notifications";
 
 type User = components["schemas"]["User"];
 type Auth = {
@@ -50,7 +49,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       predicate: (query) => query.queryKey[0] !== "auth",
     });
     client.getMutationCache().clear();
-    useNotifications.getState().reset();
   }
   return (
     <AuthContext.Provider

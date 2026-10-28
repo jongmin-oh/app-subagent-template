@@ -1,68 +1,74 @@
 import { useState } from "react";
 import { useAuth } from "@/api/auth";
 import { Button } from "@/components/Button";
-import { Screen } from "@/components/Screen";
 import { Modal } from "@/components/Modal";
-const settings = [
-  { key: "push", label: "푸시 알림" },
-  { key: "sound", label: "효과음" },
-  { key: "face", label: "생체 인증 잠금" },
-] as const;
+import { Screen } from "@/components/Screen";
+
 export default function My() {
   const { user, signOut } = useAuth();
-  // Existing demo switches only; no device settings are changed.
-  const [values, setValues] = useState({
-    push: true,
-    sound: false,
-    face: true,
-  });
   const [modal, setModal] = useState(false);
+  const [theme, setTheme] = useState(
+    () => document.documentElement.dataset.theme || "system",
+  );
+
+  function handleThemeChange(value: string) {
+    setTheme(value);
+    document.documentElement.dataset.theme = value;
+  }
+
   return (
     <>
-      <Screen>
-        <h1>MY</h1>
-        <div className="row profile">
-          <span className="avatar">{user?.name.slice(0, 1)}</span>
+      <Screen title="내 정보">
+        <article className="flex items-center gap-3 border-b border-line bg-canvas p-4 text-ink">
+          <span
+            role="img"
+            aria-label="사용자 아바타"
+            className="inline-flex size-12 items-center justify-center rounded-full bg-soft text-sm font-semibold text-ink"
+          >
+            {user?.name.slice(0, 1) || "?"}
+          </span>
           <div>
-            <h2>{user?.name}</h2>
-            <p className="caption">{user?.email}</p>
+            <h2 className="text-base font-semibold">{user?.name}</h2>
+            <p className="mt-1 text-sm text-muted">{user?.email}</p>
           </div>
-        </div>
-        <section className="card stack">
-          <h2>알림 및 환경</h2>
-          {settings.map((setting) => (
-            <label className="row setting" key={setting.key}>
-              {setting.label}
-              <input
-                type="checkbox"
-                role="switch"
-                checked={values[setting.key]}
-                onChange={() =>
-                  setValues({ ...values, [setting.key]: !values[setting.key] })
-                }
-              />
-            </label>
-          ))}
+        </article>
+        <section className="border-b border-line bg-canvas p-4 text-ink">
+          <label htmlFor="theme" className="block text-sm font-semibold">
+            테마
+          </label>
+          <select
+            id="theme"
+            value={theme}
+            onChange={(event) => handleThemeChange(event.target.value)}
+            className="mt-2 min-h-12 w-full rounded-lg border border-line bg-canvas px-3 text-base text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            <option value="system">시스템</option>
+            <option value="light">라이트</option>
+            <option value="dark">다크</option>
+          </select>
         </section>
-        <button
-          className="text-button danger-text"
-          onClick={() => setModal(true)}
-        >
-          로그아웃
-        </button>
+        <div className="p-4">
+          <Button
+            title="로그아웃"
+            variant="secondary"
+            className="w-full"
+            onClick={() => setModal(true)}
+          />
+        </div>
       </Screen>
       {modal && (
         <Modal title="로그아웃할까요?" onClose={() => setModal(false)}>
-          <p>계정에서 로그아웃합니다.</p>
-          <div className="row">
+          <p className="text-sm text-muted">계정에서 로그아웃합니다.</p>
+          <div className="flex gap-3">
             <Button
               title="취소"
               variant="secondary"
+              className="flex-1"
               onClick={() => setModal(false)}
             />
             <Button
               title="로그아웃"
-              variant="danger"
+              className="flex-1"
               onClick={() => void signOut()}
             />
           </div>

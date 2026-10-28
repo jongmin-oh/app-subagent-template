@@ -1,49 +1,103 @@
 import { NavLink, Navigate, Outlet, Route, Routes } from "react-router";
-import { Bell, Compass, Home as HomeIcon, User } from "lucide-react";
 import { AuthProvider, useAuth } from "@/api/auth";
-import { useNotifications } from "@/components/Notifications";
 import { NativeLifecycle } from "@/app/NativeLifecycle";
 import Home from "@/app/Home";
-import Explore from "@/app/Explore";
-import Activity from "@/app/Activity";
 import My from "@/app/My";
 import SignIn from "@/app/SignIn";
 
-function Layout() {
-  const unread = useNotifications(
-    (state) => state.items.filter((item) => item.unread).length,
-  );
+function HomeIcon() {
   return (
-    <div className="app">
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      data-icon-source="lucide"
+      className="lucide lucide-house"
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+      <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      data-icon-source="lucide"
+      className="lucide lucide-user-round"
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="8" r="5" />
+      <path d="M20 21a8 8 0 0 0-16 0" />
+    </svg>
+  );
+}
+
+function Layout() {
+  return (
+    <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-canvas text-ink pt-[max(16px,env(safe-area-inset-top))] pl-[max(16px,env(safe-area-inset-left))] pr-[max(16px,env(safe-area-inset-right))]">
       <Outlet />
-      <nav className="tabbar" aria-label="메인 메뉴">
-        <NavLink to="/" end>
-          <HomeIcon />홈
+      <nav
+        aria-label="주요 메뉴"
+        className="flex border-t border-line bg-canvas pb-[max(16px,env(safe-area-inset-bottom))]"
+      >
+        <NavLink
+          to="/"
+          end
+          aria-label="홈"
+          className={({ isActive }) =>
+            `flex min-h-12 min-w-12 flex-1 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+              isActive ? "text-brand" : "text-ink"
+            }`
+          }
+        >
+          <HomeIcon />
         </NavLink>
-        <NavLink to="/explore">
-          <Compass />
-          탐색
-        </NavLink>
-        <NavLink to="/activity">
-          <Bell />
-          활동
-          {unread > 0 && (
-            <span className="badge" aria-label={`읽지 않은 알림 ${unread}개`}>
-              {unread}
-            </span>
-          )}
-        </NavLink>
-        <NavLink to="/my">
-          <User />
-          MY
+        <NavLink
+          to="/my"
+          aria-label="내 정보"
+          className={({ isActive }) =>
+            `flex min-h-12 min-w-12 flex-1 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+              isActive ? "text-brand" : "text-ink"
+            }`
+          }
+        >
+          <UserIcon />
         </NavLink>
       </nav>
     </div>
   );
 }
+
 function AppRoutes() {
   const { user, loading } = useAuth();
-  if (loading) return <p role="status">불러오는 중…</p>;
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-dvh max-w-[480px] items-center justify-center bg-canvas p-4 text-ink">
+        <p role="status" className="text-sm text-muted">
+          불러오는 중…
+        </p>
+      </div>
+    );
+  }
   return (
     <Routes>
       <Route
@@ -52,14 +106,13 @@ function AppRoutes() {
       />
       <Route element={user ? <Layout /> : <Navigate to="/sign-in" replace />}>
         <Route index element={<Home />} />
-        <Route path="explore" element={<Explore />} />
-        <Route path="activity" element={<Activity />} />
         <Route path="my" element={<My />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
+
 export function App() {
   return (
     <AuthProvider>

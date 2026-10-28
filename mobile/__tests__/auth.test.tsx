@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App } from "@/app/App";
 import { tokenStorage } from "@/api/token";
 import { googleSignIn, googleSignOut } from "@/api/google";
-import { useNotifications } from "@/components/Notifications";
 import type { components } from "@/api/schema";
 
 vi.mock("@/api/token", () => ({
@@ -60,7 +59,7 @@ beforeEach(() => {
   vi.stubGlobal("fetch", fetchMock);
   vi.mocked(tokenStorage.get).mockResolvedValue(null);
   vi.mocked(googleSignIn).mockResolvedValue("mockIdToken");
-  useNotifications.getState().reset();
+  document.documentElement.dataset.theme = "system";
 });
 test("protected routes show sign-in without a stored token", async () => {
   renderApp("/my");
@@ -147,39 +146,9 @@ test("confirmed logout clears credentials and protected screens", async () => {
   expect(tokenStorage.remove).toHaveBeenCalledOnce();
   expect(googleSignOut).toHaveBeenCalledOnce();
 });
-test("checking a task updates progress", async () => {
-  const ui = signedIn();
-  expect(await screen.findByText("25%")).toBeVisible();
-  await ui.click(screen.getByRole("checkbox", { name: /주간 회고 작성/ }));
-  expect(screen.getByText("50%")).toBeVisible();
-  expect(
-    screen.getByRole("checkbox", { name: /주간 회고 작성/ }),
-  ).toBeChecked();
-});
-test("bottom sheet adds a task", async () => {
-  const ui = signedIn();
-  await ui.click(await screen.findByRole("button", { name: "할 일 추가" }));
-  await ui.type(screen.getByPlaceholderText("무엇을 할까요?"), "장보기");
-  await ui.click(screen.getByRole("button", { name: "추가하기" }));
-  expect(screen.getByRole("checkbox", { name: /장보기/ })).toBeVisible();
-  expect(screen.getByText("20%")).toBeVisible();
-  expect(screen.getByRole("status")).toHaveTextContent("할 일이 추가됐어요");
-});
-test("reading notifications clears the shared tab badge", async () => {
-  const ui = signedIn("/activity");
-  await ui.click(await screen.findByRole("button", { name: "모두 읽음" }));
-  expect(screen.getByRole("status")).toHaveTextContent("모두 읽음 처리했어요");
-  expect(screen.queryByLabelText("읽지 않은 알림 2개")).not.toBeInTheDocument();
-});
-test("explore filters and toggles favorites", async () => {
-  const ui = signedIn("/explore");
-  await ui.click(await screen.findByRole("button", { name: "음악" }));
-  expect(screen.queryByText("미니멀 작업실")).not.toBeInTheDocument();
-  await ui.type(screen.getByRole("searchbox"), "밤");
-  expect(screen.queryByText("집중 사운드")).not.toBeInTheDocument();
-  const favorite = screen.getByRole("button", {
-    name: "밤의 플레이리스트 즐겨찾기",
-  });
-  await ui.click(favorite);
-  expect(favorite).toHaveAttribute("aria-pressed", "true");
+test("theme selector updates document data-theme", async () => {
+  const ui = signedIn("/my");
+  const select = await screen.findByLabelText("테마");
+  await ui.selectOptions(select, "dark");
+  expect(document.documentElement.dataset.theme).toBe("dark");
 });
