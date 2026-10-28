@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from app.schemas.auth import User
 from app.services.db import connect
 
+
 GOOGLE_ISSUERS = ["accounts.google.com", "https://accounts.google.com"]
 JWT_SECRET_NAME = "/backend-template/JWT_SECRET"
 TOKEN_TTL = timedelta(days=30)
@@ -76,9 +77,7 @@ def get_user_by_token(access_token: str) -> User:
     except jwt.PyJWTError as e:
         raise _unauthorized() from e
     with connect() as conn:
-        row = conn.execute(
-            "SELECT id::text, email, name FROM users WHERE id = %s", (claims["sub"],)
-        ).fetchone()
+        row = conn.execute("SELECT id::text, email, name FROM users WHERE id = %s", (claims["sub"],)).fetchone()
     if row is None:
         raise _unauthorized()
     return User(**row)
