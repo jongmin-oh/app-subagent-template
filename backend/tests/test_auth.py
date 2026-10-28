@@ -9,10 +9,11 @@ import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi.testclient import TestClient
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
 from app.services import auth
 from main import app
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 
 CLIENT_ID = "test-client-id"
 GOOGLE_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -36,11 +37,7 @@ class FakeConn:
         if len(params) == 3:  # upsert: (google_sub, email, name)
             row = {"id": USER_ID, "email": params[1], "name": params[2]}
         else:
-            row = (
-                {"id": USER_ID, "email": "a@example.com", "name": "Alice"}
-                if self.user_exists
-                else None
-            )
+            row = {"id": USER_ID, "email": "a@example.com", "name": "Alice"} if self.user_exists else None
         return SimpleNamespace(fetchone=lambda: row)
 
 
@@ -51,9 +48,7 @@ def db(monkeypatch: pytest.MonkeyPatch) -> FakeConn:
     auth._jwt_secret.cache_clear()
     auth._google_jwks.cache_clear()
     monkeypatch.setattr(auth, "_jwt_secret", lambda: SECRET)
-    jwks = SimpleNamespace(
-        get_signing_key_from_jwt=lambda _: SimpleNamespace(key=GOOGLE_KEY.public_key())
-    )
+    jwks = SimpleNamespace(get_signing_key_from_jwt=lambda _: SimpleNamespace(key=GOOGLE_KEY.public_key()))
     monkeypatch.setattr(auth, "_google_jwks", lambda: jwks)
     monkeypatch.setattr(auth, "connect", lambda: conn)
     return conn
@@ -82,9 +77,7 @@ def test_login_ok(db: FakeConn) -> None:
     body = res.json()
     assert set(body) == {"access_token", "user"}
     assert body["user"] == {"id": USER_ID, "email": "a@example.com", "name": "Alice"}
-    assert (
-        jwt.decode(body["access_token"], SECRET, algorithms=["HS256"])["sub"] == USER_ID
-    )
+    assert jwt.decode(body["access_token"], SECRET, algorithms=["HS256"])["sub"] == USER_ID
     assert db.params[0] == ("google-123", "a@example.com", "Alice")
 
 
@@ -113,9 +106,7 @@ def test_login_without_email_is_unauthorized(db: FakeConn) -> None:
 
 
 def test_me_ok(db: FakeConn) -> None:
-    token = client.post("/auth/google", json={"id_token": google_token()}).json()[
-        "access_token"
-    ]
+    token = client.post("/auth/google", json={"id_token": google_token()}).json()["access_token"]
     res = client.get("/me", headers={"Authorization": f"Bearer {token}"})
     assert res.status_code == 200
     assert res.json() == {"id": USER_ID, "email": "a@example.com", "name": "Alice"}
@@ -128,8 +119,6 @@ def test_me_returns_unauthorized_when_user_no_longer_exists(db: FakeConn) -> Non
     assert client.get("/me", headers={"Authorization": f"Bearer {token}"}).status_code == 401
 
 
-@pytest.mark.parametrize(
-    "headers", [{}, {"Authorization": "Bearer garbage"}], ids=["none", "bad"]
-)
+@pytest.mark.parametrize("headers", [{}, {"Authorization": "Bearer garbage"}], ids=["none", "bad"])
 def test_me_unauthorized(db: FakeConn, headers: dict) -> None:
     assert client.get("/me", headers=headers).status_code == 401
