@@ -96,10 +96,11 @@ mobile/          # React SPA + Capacitor 앱
   src/
     app/         # App.tsx의 명시적 라우트, 화면, NativeLifecycle
     components/
-    theme/       # styles.css: Tailwind 테마·디자인 토큰·공통 CSS
+    theme/       # styles.css: Mobile UI Design System MCP 테마·토큰(--ds-*)·Tailwind CSS v4
     api/         # openapi.json에서 생성된 타입 + API 클라이언트
+  public/
+    THIRD_PARTY_NOTICES.txt # MCP 라이선스 고지문 (빌드 시 dist/에 포함)
   __tests__/     # Vitest + React Testing Library
-  design-system.md # 디자인 시스템 가이드
   capacitor.config.ts # appId, webDir: dist, 네이티브 플러그인 설정
   ios/          # Capacitor iOS 프로젝트 (SPM)
   android/      # Capacitor Android 프로젝트
@@ -129,7 +130,7 @@ docs/
 |---|---|---|
 | `code-reviewer` | 변경된 코드: 규칙, 계약, 보안, 단순함 | CLAUDE.md, `docs/openapi.json`, `docs/db-schema.md` |
 | `flow-reviewer` | 사용자 동작: 앱을 띄워 실제로 클릭 | `docs/spec.md` |
-| `design-reviewer` | 화면 모양: 코드 규칙 + 스크린샷 | `mobile/design-system.md` |
+| `design-reviewer` | 화면 모양: MCP 디자인 시스템 준수 + 스크린샷 | `mobile-ui-design-system` MCP (`get_design_spec`·`get_component`·`get_icon`·`get_design_tokens`) |
 
 **순서**: 메인 구현 → 리뷰어 3명 병렬 실행 → 메인이 고침 → 필요하면 다시 리뷰
 
@@ -172,7 +173,7 @@ cd mobile && npm run android                      # Android Studio
 ## 코딩 규칙
 
 - **Python**: 타입 힌트 필수, 요청/응답은 모두 `app/schemas/`의 Pydantic 스키마, 라우터에 비즈니스 로직 넣지 않기(services로 분리)
-- **TypeScript**: `strict` 모드, `any` 금지, 타입 단언(`as`)은 꼭 필요할 때만 쓰고 이유를 주석으로 남기기, 스타일 값은 하드코딩하지 않고 `mobile/design-system.md` 규칙을 따름
+- **TypeScript**: `strict` 모드, `any` 금지, 타입 단언(`as`)은 꼭 필요할 때만 쓰고 이유를 주석으로 남기기, UI는 `mobile-ui-design-system` MCP(`get_design_spec` → `get_component` → `get_icon` → `get_design_tokens` → `get_design_system`)에서 가져온 HTML + Tailwind CSS v4 및 `--ds-*` 토큰(기본 강조색 `#7c4dff`, 라이트·다크·시스템 테마)과 `THIRD_PARTY_NOTICES.txt`를 사용
 - **Lambda**: 핸들러 밖에서 무거운 초기화 피하기(콜드 스타트), 환경변수는 `.env`가 아닌 IaC에서 주입
 - **CORS**: Function URL 설정(IaC) 한 곳에서만 관리. FastAPI `CORSMiddleware`와 함께 쓰면 헤더가 중복됨. 허용 출처에 웹 배포 URL, 개발 서버, iOS `capacitor://localhost`, Android `https://localhost` 포함
 - **비밀값**: 코드·커밋에 절대 포함하지 않기

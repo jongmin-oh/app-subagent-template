@@ -20,8 +20,8 @@ flowchart LR
 | UI | React + React DOM | 19.x |
 | 라우팅 | React Router | 7.x, Declarative 모드, `react-router` import |
 | 서버 상태 | TanStack Query | 5.x: 사용자 조회·캐시, 로그인 mutation |
-| 전역 클라이언트 상태 | Zustand | 5.x: 알림 목록·탭 배지 공유 |
-| 스타일 | Tailwind CSS | 4.x + Umbra CSS 토큰 |
+| 전역 클라이언트 상태 | Zustand | 5.x |
+| 스타일 | Tailwind CSS | 4.x + Mobile UI Design System MCP (`--ds-*` 토큰, `#7c4dff`, 라이트/다크/시스템 테마) |
 | 네이티브 셸 | Capacitor | 8.x, `webDir: dist` |
 | 시스템 바 | SystemBars | `@capacitor/core` 내장 |
 | 앱 이벤트 | `@capacitor/app` | 8.x: Android backButton |
@@ -86,7 +86,7 @@ npx cap add android
 - 네이티브 Google 콜백은 Android `MainActivity`와 iOS `AppDelegate`/`SceneDelegate`에 연결되어 있습니다.
 - iOS OAuth 클라이언트의 번들 ID는 `com.reppley.template`입니다. `Info.plist`의 URL scheme을 해당 클라이언트 ID의 역순 값으로 맞춥니다. 현재 값은 기존 앱 설정에서 이전했습니다.
 - `src/api/google.ts`는 online 모드의 Google ID token을 받아 기존 `POST /auth/google` 계약으로 전달합니다. iOS server client ID와 백엔드 `GOOGLE_WEB_CLIENT_ID`도 같은 Web client ID를 사용합니다.
-- JWT로 `GET /me`를 호출해 세션을 복원합니다. 거절된 토큰은 지우고 로그인 화면으로 돌아갑니다. 로그아웃은 토큰·Google 세션·Query 캐시·공유 알림 상태를 비웁니다.
+- JWT로 `GET /me`를 호출해 세션을 복원합니다. 거절된 토큰은 지우고 로그인 화면으로 돌아갑니다. 로그아웃은 토큰·Google 세션·Query 캐시를 비웁니다.
 - 네이티브 토큰은 보안 저장소를 사용합니다. 웹은 **암호화되지 않은 sessionStorage**를 사용하며 탭이 닫히면 세션이 종료됩니다. HttpOnly 쿠키 방식으로 바꾸려면 백엔드 계약 변경이 필요합니다.
 - 기존 Expo SecureStore의 저장값을 자동 이관하지 않으므로 기존 설치 사용자는 전환 후 다시 로그인해야 합니다.
 
@@ -100,7 +100,7 @@ CORS는 Lambda Function URL의 SAM 설정 한 곳에서 관리합니다. 기본 
 - SystemBars가 시스템 바 스타일을 정하고, 레이아웃 여백은 CSS가 처리합니다. `viewport-fit=cover`, `--safe-area-inset-*` 및 `env(safe-area-inset-*)` fallback을 적용합니다. Android edge-to-edge에서 상·하·좌·우 inset이 중복되지 않는지 확인합니다. [SystemBars 공식 문서](https://capacitorjs.com/docs/apis/system-bars)
 - Android 뒤로가기는 열린 dialog를 먼저 닫고, 앱 내 이전 경로가 있으면 이동하며 루트에서는 종료합니다. 등록한 이벤트 리스너는 컴포넌트 해제 시 제거합니다.
 - 버튼·탭에만 텍스트 선택·길게 누르기 메뉴 억제를 적용하고 입력·본문 복사와 포커스 표시를 유지합니다.
-- 카메라·푸시 등은 기능 구현 시 8.x 호환 공식 플러그인과 권한 설정을 추가합니다. 현재 MY의 푸시·생체 인증 토글은 기존 UI 데모입니다.
+- 카메라·푸시 등은 기능 구현 시 8.x 호환 공식 플러그인과 권한 설정을 추가합니다.
 
 ## 배포와 검증
 
@@ -129,8 +129,8 @@ page.on("console", (m) => m.type() === "error" && console.log("console error:", 
 await page.route("**/api/me", (r) => r.fulfill({ json: { id: "u1", email: "test@example.com", name: "테스트" } }));
 await page.addInitScript(() => sessionStorage.setItem("access_token", "test-token"));
 await page.goto("http://localhost:5173/");
-await page.getByRole("link", { name: "탐색" }).click();
-await page.screenshot({ path: "/tmp/explore.png" });
+await page.getByRole("link", { name: "내 정보" }).click();
+await page.screenshot({ path: "/tmp/my.png" });
 await browser.close();
 ```
 

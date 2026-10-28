@@ -1,7 +1,15 @@
 # React + Capacitor 작업 지침
 
 이 디렉터리는 React SPA를 Vite로 빌드하고 Capacitor 8로 iOS·Android에 담는 앱입니다. 웹과 앱은 같은 `dist/`를 사용합니다.
-상세 스택·환경·플랫폼 설정은 `../docs/frontend-stack.md`, 디자인은 `design-system.md`를 따릅니다.
+상세 스택·환경·플랫폼 설정은 `../docs/frontend-stack.md`를 따르고, UI 디자인·컴포넌트·토큰·아이콘은 `.mcp.json`의 `mobile-ui-design-system` MCP 서버에서 가져와 사용합니다.
+
+## 디자인 시스템 (Mobile UI Design System MCP)
+
+1. `get_design_spec`으로 제품 정책(`mobile-app-only`, 최소 48px 터치 영역, 상단 앱바, 하단 내비게이션, safe-area)과 사용 가능한 컴포넌트/아이콘 이름을 확인합니다.
+2. `get_component`로 필요한 HTML/Tailwind 컴포넌트를 가져와 상태·이벤트·내비게이션을 연결합니다.
+3. `get_icon`으로 공식 Lucide SVG(`data-icon-source="lucide"`)와 라이선스 고지를 가져옵니다.
+4. `get_design_tokens`로 `--ds-*` 색상·간격·타입 토큰(기본 강조색 `#7c4dff`, 라이트·다크·시스템 테마)을 확인합니다.
+5. 전체 파일이 필요하면 `get_design_system`을 호출하며, `THIRD_PARTY_NOTICES.txt`를 함께 배포합니다.
 
 ## 스택과 구조
 

@@ -3,7 +3,7 @@
 React + Vite SPA를 Capacitor 8로 감싼 웹·iOS·Android 앱과 FastAPI/AWS Lambda 백엔드 템플릿입니다.
 React Router 7, TanStack Query 5, Zustand 5, Tailwind CSS 4를 사용합니다.
 
-Google 로그인, 앱 JWT 발급·복원, 사용자 조회·로그아웃을 지원합니다. 홈·탐색·활동·MY 화면의 할 일·컬렉션·알림·설정은 기존 로컬 데모이며 서버 저장이나 실제 푸시·생체 인증 기능은 없습니다.
+Google 로그인, 앱 JWT 발급·복원, 사용자 조회·로그아웃을 지원합니다. UI는 Mobile UI Design System MCP에서 제공하는 HTML + Tailwind CSS v4 컴포넌트·토큰(`#7c4dff`, 라이트/다크/시스템 테마)·아이콘을 사용합니다.
 
 Node.js 22.12+에서 시작합니다:
 
@@ -24,4 +24,4 @@ npm run ios      # macOS + Xcode 26+
 npm run android  # Android Studio
 ```
 
-[프론트엔드 스택·OAuth·플랫폼 설정](docs/frontend-stack.md), [개발 규칙](CLAUDE.md), [디자인 시스템](mobile/design-system.md)을 참고하세요.
+[프론트엔드 스택·OAuth·플랫폼 설정](docs/frontend-stack.md), [개발 규칙](CLAUDE.md), [작업 지침](mobile/AGENTS.md)을 참고하세요.
