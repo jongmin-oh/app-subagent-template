@@ -7,6 +7,7 @@
 
 - **프론트엔드**: React SPA + TypeScript strict + Vite 8 → 웹 / Capacitor 8 (iOS·Android)
 - **라우팅·상태·스타일**: React Router 7 (`react-router`), TanStack Query 5, Zustand 5, Tailwind CSS 4
+- **UI**: `mobile-ui-design-system` MCP(`get_design_spec` → `get_component` → `get_icon` → `get_design_tokens` → `get_design_system`)의 HTML + Tailwind CSS v4 + `--ds-*` 토큰(기본 강조색 `#7c4dff`, 라이트·다크·시스템 테마), `THIRD_PARTY_NOTICES.txt` 함께 배포
 - **개발 환경**: Node.js 22.12+, iOS 빌드는 macOS + Xcode 26+. 상세: `docs/frontend-stack.md`
 - **백엔드**: FastAPI (Python 3.13) → AWS Lambda (Mangum 어댑터) + Lambda Function URL
 - **인프라**: AWS SAM
