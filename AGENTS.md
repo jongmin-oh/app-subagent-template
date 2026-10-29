@@ -82,4 +82,4 @@ cd mobile && npm run android                      # Android Studio
 
 ## Git
 
-브랜치를 만들지 않고 항상 `main`에서 바로 커밋·푸시합니다.
+커밋·푸시는 요청받았을 때만 합니다. 브랜치는 만들지 않고 `main`에 합니다.
