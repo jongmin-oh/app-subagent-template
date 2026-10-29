@@ -18,10 +18,14 @@
 ```
 mobile/          # React SPA + Capacitor 앱
   src/
-    app/         # App.tsx의 명시적 라우트, 화면, NativeLifecycle
-    components/
+    app/         # App.tsx(라우터·Layout), NativeLifecycle
+    features/    # 기능별 폴더. <name>/ 안에 index.ts, api.ts, use*.ts, *.tsx
+      auth/      # AuthProvider, useAuth, SignIn, Google 로그인
+      account/   # 내 정보 화면
+      home/      # 홈 화면
+    components/  # 기능과 무관한 공용 UI (Button, Modal, Screen)
+    lib/         # http.ts(API_URL), token.ts, schema.d.ts(openapi에서 생성)
     theme/       # styles.css: Mobile UI Design System MCP 테마·토큰(--ds-*)·Tailwind CSS v4
-    api/         # openapi.json에서 생성된 타입 + API 클라이언트
   public/
     THIRD_PARTY_NOTICES.txt # MCP 라이선스 고지문 (빌드 시 dist/에 포함)
   __tests__/     # Vitest + React Testing Library
@@ -54,9 +58,25 @@ docs/
    ```
 2. 프론트는 스펙에서 타입을 생성해서 씁니다. 타입을 손으로 작성하지 않습니다:
    ```bash
-   cd mobile && npx openapi-typescript ../docs/openapi.json -o src/api/schema.d.ts
+   cd mobile && npx openapi-typescript ../docs/openapi.json -o src/lib/schema.d.ts
    ```
 3. 프론트에 필요한 필드나 엔드포인트는 백엔드와 스펙에 먼저 추가합니다.
+
+## 프론트 구조 규칙
+
+1. 의존 방향은 `app → features → components | lib`입니다. `components/`·`lib/`는 `features/`·`app/`를 import하지 않고, `features/`는 `app/`을 import하지 않습니다.
+2. 다른 feature는 `@/features/<name>`(index.ts)로만 import합니다. `@/features/<name>/<file>` 딥 임포트는 금지이고, feature 안에서는 `./`를 씁니다.
+3. feature 안에서 서버 호출은 `api.ts`, 서버 상태는 `use*.ts`, UI는 `*.tsx`에 둡니다. 컴포넌트는 `fetch`를 직접 부르지 않고, 타입은 `@/lib/schema`에서 가져옵니다.
+
+규칙 1·2는 `mobile/eslint.config.js`의 `no-restricted-imports`가 강제하며 `npm run lint`가 위반을 잡습니다. `features/` 아래 새 폴더는 자동으로 적용됩니다.
+
+새 feature 추가 순서:
+
+1. `features/<name>/`에 `api.ts`, `use<Name>.ts`, `<Name>Screen.tsx`를 만듭니다.
+2. 밖에서 쓸 것만 `index.ts`로 export합니다.
+3. `app/App.tsx`에 라우트를 추가합니다.
+4. `__tests__/<name>.test.tsx`에 테스트를 추가합니다.
+5. `cd mobile && npm run typecheck && npm run lint && npm test`로 확인합니다.
 
 ## DB 스키마 문서: docs/db-schema.md
 

@@ -1,7 +1,7 @@
-import { useAuth } from "@/api/auth";
 import { Screen } from "@/components/Screen";
+import { useAuth } from "@/features/auth";
 
-export default function Home() {
+export function HomeScreen() {
   const { user } = useAuth();
   return (
     <Screen title="홈">

@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useAuth } from "@/api/auth";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { Screen } from "@/components/Screen";
+import { useAuth } from "@/features/auth";
 
-export default function My() {
+export function MyScreen() {
   const { user, signOut } = useAuth();
   const [modal, setModal] = useState(false);
   const [theme, setTheme] = useState(

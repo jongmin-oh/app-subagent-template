@@ -5,7 +5,7 @@ import { Capacitor, SystemBars } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import { SecureStorage } from "@aparajita/capacitor-secure-storage";
 import { NativeLifecycle } from "@/app/NativeLifecycle";
-import { tokenStorage } from "@/api/token";
+import { tokenStorage } from "@/lib/token";
 
 vi.mock("@capacitor/core", () => ({
   Capacitor: { isNativePlatform: vi.fn(), getPlatform: vi.fn() },

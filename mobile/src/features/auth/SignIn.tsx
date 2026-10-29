@@ -1,7 +1,7 @@
-import { useAuth } from "@/api/auth";
 import { Button } from "@/components/Button";
+import { useAuth } from "./AuthProvider";
 
-export default function SignIn() {
+export function SignIn() {
   const { signIn, signingIn } = useAuth();
   return (
     <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-canvas text-ink pt-[max(16px,env(safe-area-inset-top))] pb-[max(16px,env(safe-area-inset-bottom))] pl-[max(16px,env(safe-area-inset-left))] pr-[max(16px,env(safe-area-inset-right))]">

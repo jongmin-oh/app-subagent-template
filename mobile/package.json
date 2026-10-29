@@ -18,7 +18,7 @@
     "sync": "npm run build && cap sync",
     "ios": "cap open ios",
     "android": "cap open android",
-    "api:types": "openapi-typescript ../docs/openapi.json -o src/api/schema.d.ts"
+    "api:types": "openapi-typescript ../docs/openapi.json -o src/lib/schema.d.ts"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^8.0.0",

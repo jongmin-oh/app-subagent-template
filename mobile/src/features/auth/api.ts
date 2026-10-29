@@ -1,10 +1,9 @@
-import type { components } from "@/api/schema";
+import { API_URL } from "@/lib/http";
+import type { components } from "@/lib/schema";
 
 type User = components["schemas"]["User"];
 type LoginResponse = components["schemas"]["LoginResponse"];
 type GoogleLoginRequest = components["schemas"]["GoogleLoginRequest"];
-
-const API_URL = import.meta.env.VITE_API_URL ?? "/api";
 
 export async function loginWithGoogle(
   idToken: string,

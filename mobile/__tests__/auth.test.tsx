@@ -5,14 +5,14 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App } from "@/app/App";
-import { tokenStorage } from "@/api/token";
-import { googleSignIn, googleSignOut } from "@/api/google";
-import type { components } from "@/api/schema";
+import { tokenStorage } from "@/lib/token";
+import { googleSignIn, googleSignOut } from "@/features/auth/google";
+import type { components } from "@/lib/schema";
 
-vi.mock("@/api/token", () => ({
+vi.mock("@/lib/token", () => ({
   tokenStorage: { get: vi.fn(), set: vi.fn(), remove: vi.fn() },
 }));
-vi.mock("@/api/google", () => ({
+vi.mock("@/features/auth/google", () => ({
   googleSignIn: vi.fn(),
   googleSignOut: vi.fn(),
 }));

@@ -1,9 +1,8 @@
 import { NavLink, Navigate, Outlet, Route, Routes } from "react-router";
-import { AuthProvider, useAuth } from "@/api/auth";
 import { NativeLifecycle } from "@/app/NativeLifecycle";
-import Home from "@/app/Home";
-import My from "@/app/My";
-import SignIn from "@/app/SignIn";
+import { MyScreen } from "@/features/account";
+import { AuthProvider, SignIn, useAuth } from "@/features/auth";
+import { HomeScreen } from "@/features/home";
 
 function HomeIcon() {
   return (
@@ -105,8 +104,8 @@ function AppRoutes() {
         element={user ? <Navigate to="/" replace /> : <SignIn />}
       />
       <Route element={user ? <Layout /> : <Navigate to="/sign-in" replace />}>
-        <Route index element={<Home />} />
-        <Route path="my" element={<My />} />
+        <Route index element={<HomeScreen />} />
+        <Route path="my" element={<MyScreen />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

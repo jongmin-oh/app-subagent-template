@@ -28,7 +28,7 @@ flowchart LR
 | Google 로그인 | `@capgo/capacitor-social-login` | Capacitor 8 호환, web/iOS/Android |
 | 네이티브 JWT 저장 | `@aparajita/capacitor-secure-storage` | 8.x, iOS Keychain / Android Keystore |
 | 테스트 | Vitest + React Testing Library | jsdom에서 React DOM 동작 검증 |
-| API 타입 | openapi-typescript | `docs/openapi.json` → `src/api/schema.d.ts` |
+| API 타입 | openapi-typescript | `docs/openapi.json` → `src/lib/schema.d.ts` |
 | OTA | Capgo 또는 Capawesome | 선택 후 연동, 현재 미설정 |
 
 설치된 정확한 버전은 `mobile/package-lock.json`이 기준입니다. Ionic React는 앱 스타일 UI가 필요한 경우의 대안이며 현재 설치하지 않습니다. 도입 전 라우터 어댑터의 React Router 7 호환성을 확인합니다.
@@ -85,7 +85,7 @@ npx cap add android
 - Google Cloud에서 웹 출처(개발은 `http://localhost:5173`, 운영은 실제 웹 URL)를 등록합니다. 웹 클라이언트의 승인된 리디렉션 URI에는 `http://localhost:5173/sign-in`과 운영 웹의 `/sign-in` URL도 등록합니다. Android OAuth 클라이언트에는 `com.reppley.template`과 개발·배포 서명의 SHA-1을 등록합니다.
 - 네이티브 Google 콜백은 Android `MainActivity`와 iOS `AppDelegate`/`SceneDelegate`에 연결되어 있습니다.
 - iOS OAuth 클라이언트의 번들 ID는 `com.reppley.template`입니다. `Info.plist`의 URL scheme을 해당 클라이언트 ID의 역순 값으로 맞춥니다. 현재 값은 기존 앱 설정에서 이전했습니다.
-- `src/api/google.ts`는 online 모드의 Google ID token을 받아 기존 `POST /auth/google` 계약으로 전달합니다. iOS server client ID와 백엔드 `GOOGLE_WEB_CLIENT_ID`도 같은 Web client ID를 사용합니다.
+- `src/features/auth/google.ts`는 online 모드의 Google ID token을 받아 기존 `POST /auth/google` 계약으로 전달합니다. iOS server client ID와 백엔드 `GOOGLE_WEB_CLIENT_ID`도 같은 Web client ID를 사용합니다.
 - JWT로 `GET /me`를 호출해 세션을 복원합니다. 거절된 토큰은 지우고 로그인 화면으로 돌아갑니다. 로그아웃은 토큰·Google 세션·Query 캐시를 비웁니다.
 - 네이티브 토큰은 보안 저장소를 사용합니다. 웹은 **암호화되지 않은 sessionStorage**를 사용하며 탭이 닫히면 세션이 종료됩니다. HttpOnly 쿠키 방식으로 바꾸려면 백엔드 계약 변경이 필요합니다.
 - 기존 Expo SecureStore의 저장값을 자동 이관하지 않으므로 기존 설치 사용자는 전환 후 다시 로그인해야 합니다.

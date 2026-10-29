@@ -1,9 +1,9 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { components } from "@/api/schema";
-import { getMe, loginWithGoogle } from "@/api/client";
-import { tokenStorage } from "@/api/token";
-import { googleSignIn, googleSignOut } from "@/api/google";
+import type { components } from "@/lib/schema";
+import { tokenStorage } from "@/lib/token";
+import { getMe, loginWithGoogle } from "./api";
+import { googleSignIn, googleSignOut } from "./google";
 
 type User = components["schemas"]["User"];
 type Auth = {

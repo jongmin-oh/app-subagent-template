@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { SocialLogin } from "@capgo/capacitor-social-login";
-import { googleSignIn, googleSignOut } from "@/api/google";
+import { googleSignIn, googleSignOut } from "@/features/auth/google";
 
 vi.mock("@capgo/capacitor-social-login", () => ({
   SocialLogin: { initialize: vi.fn(), login: vi.fn(), logout: vi.fn() },
