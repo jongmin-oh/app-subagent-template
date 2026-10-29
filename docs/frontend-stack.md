@@ -117,7 +117,7 @@ Capgo/Capawesome OTA는 아직 설치·연동하지 않았습니다. 공급자�
 
 ### 브라우저 검증 (Playwright)
 
-`flow-reviewer`와 `design-reviewer`가 씁니다. `npm run dev`를 백그라운드로 띄운 뒤, 저장소 밖 임시 경로에 스크립트를 두고 `mobile/`에서 `node --input-type=module - < 스크립트.mjs`로 실행합니다(그래야 `mobile/node_modules`의 playwright를 찾습니다). 브라우저가 없으면 `npx playwright install chromium`.
+`npm run dev`를 백그라운드로 띄운 뒤, 저장소 밖 임시 경로에 스크립트를 두고 `mobile/`에서 `node --input-type=module - < 스크립트.mjs`로 실행합니다(그래야 `mobile/node_modules`의 playwright를 찾습니다). 브라우저가 없으면 `npx playwright install chromium`.
 
 Google 로그인은 자동화할 수 없으므로 웹 토큰과 `/me` 응답을 목으로 넣습니다. 다른 API도 같은 방식으로 `docs/openapi.json` 형태의 응답을 넣습니다.
 

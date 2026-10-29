@@ -24,4 +24,4 @@ npm run ios      # macOS + Xcode 26+
 npm run android  # Android Studio
 ```
 
-[프론트엔드 스택·OAuth·플랫폼 설정](docs/frontend-stack.md), [개발 규칙](CLAUDE.md), [작업 지침](mobile/AGENTS.md)을 참고하세요.
+[프론트엔드 스택·OAuth·플랫폼 설정](docs/frontend-stack.md), [개발 규칙](CLAUDE.md)을 참고하세요.

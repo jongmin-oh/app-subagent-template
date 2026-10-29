@@ -104,8 +104,6 @@ mobile/          # React SPA + Capacitor 앱
   capacitor.config.ts # appId, webDir: dist, 네이티브 플러그인 설정
   ios/          # Capacitor iOS 프로젝트 (SPM)
   android/      # Capacitor Android 프로젝트
-  AGENTS.md     # React + Capacitor 작업 지침
-  CLAUDE.md      # @AGENTS.md 참조
 backend/         # FastAPI
   app/
     routers/
@@ -121,18 +119,6 @@ docs/
   openapi.json   # ★ 프론트-백엔드 계약 파일
   db-schema.md   # ★ DB 테이블 스키마 문서
 ```
-
-## 역할 분담
-
-메인 세션이 플래너입니다: 계획을 세우고 코드와 테스트를 직접 작성합니다. 서브에이전트는 리뷰어 3명뿐이며, 모두 파일을 수정하지 않고 보고만 합니다.
-
-| 에이전트 | 보는 것 | 기준 |
-|---|---|---|
-| `code-reviewer` | 변경된 코드: 규칙, 계약, 보안, 단순함 | CLAUDE.md, `docs/openapi.json`, `docs/db-schema.md` |
-| `flow-reviewer` | 사용자 동작: 앱을 띄워 실제로 클릭 | `docs/spec.md` |
-| `design-reviewer` | 화면 모양: MCP 디자인 시스템 준수 + 스크린샷 | `mobile-ui-design-system` MCP (`get_design_spec`·`get_component`·`get_icon`·`get_design_tokens`) |
-
-**순서**: 메인 구현 → 리뷰어 3명 병렬 실행 → 메인이 고침 → 필요하면 다시 리뷰
 
 ## 프론트-백엔드 계약: docs/openapi.json
 
@@ -186,4 +172,3 @@ cd mobile && npm run android                      # Android Studio
 - [ ] 프론트 변경 시 Vite 빌드 및 관련 플랫폼 동작 확인 (미검증 환경은 보고)
 - [ ] API 변경 시 `docs/openapi.json` 갱신됨
 - [ ] DB 스키마 변경 시 `docs/db-schema.md` 갱신됨
-- [ ] `code-reviewer`·`flow-reviewer`·`design-reviewer` 리뷰에서 치명적 이슈 없음
