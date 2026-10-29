@@ -79,3 +79,7 @@ cd mobile && npm run sync                         # 빌드 + cap sync
 cd mobile && npm run ios                          # Xcode (Mac 필수)
 cd mobile && npm run android                      # Android Studio
 ```
+
+## Git
+
+브랜치를 만들지 않고 항상 `main`에서 바로 커밋·푸시합니다.
