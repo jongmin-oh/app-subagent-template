@@ -5,6 +5,8 @@ const config: CapacitorConfig = {
   appName: "mobile",
   webDir: "dist",
   plugins: {
+    // Native fetch bypasses CORS; Lambda Function URL CORS rejects capacitor://localhost
+    CapacitorHttp: { enabled: true },
     SystemBars: { insetsHandling: "css", style: "LIGHT" },
     SocialLogin: {
       providers: {

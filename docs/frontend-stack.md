@@ -92,7 +92,7 @@ npx cap add android
 
 플랫폼 설정은 [Google 로그인 가이드](https://capgo.app/docs/plugins/social-login/google/general/), [Android 설정](https://capgo.app/docs/plugins/social-login/google/android/), [iOS 설정](https://capgo.app/docs/plugins/social-login/google/ios/)를 따릅니다. 보안 저장소의 플랫폼 동작은 [플러그인 문서](https://github.com/aparajita/capacitor-secure-storage)를 참고하세요.
 
-CORS는 Lambda Function URL의 SAM 설정 한 곳에서 관리합니다. 기본 허용 출처는 `http://localhost:5173`, `capacitor://localhost`(iOS), `https://localhost`(Android)입니다. 운영 웹 출처는 SAM의 `AllowedOrigins` 파라미터에 이 출처들과 함께 지정합니다. `server.hostname`/scheme 변경 시 CORS도 갱신합니다. 로컬 `uvicorn` 단독 실행에는 Function URL의 CORS 설정이 적용되지 않습니다. 웹 개발에서는 `VITE_API_URL=/api`로 두면 Vite가 `http://127.0.0.1:8000`으로 프록시합니다. 네이티브 및 운영 웹 빌드에는 실제 HTTPS 백엔드 URL을 지정합니다.
+CORS는 Lambda Function URL의 SAM 설정 한 곳에서 관리합니다. Lambda URL CORS는 `http`/`https`(또는 `*`)만 허용해 iOS 출처 `capacitor://localhost`를 등록할 수 없으므로, 네이티브 앱은 `capacitor.config.ts`의 `CapacitorHttp`로 요청해 CORS를 거치지 않습니다. 기본 허용 출처는 `http://localhost:5173`(웹 개발), `https://localhost`(Android 웹뷰)입니다. 운영 웹 출처는 SAM의 `AllowedOrigins` 파라미터에 이 출처들과 함께 지정합니다. `server.hostname`/scheme 변경 시 CORS도 갱신합니다. 로컬 `uvicorn` 단독 실행에는 Function URL의 CORS 설정이 적용되지 않습니다. 웹 개발에서는 `VITE_API_URL=/api`로 두면 Vite가 `http://127.0.0.1:8000`으로 프록시합니다. 네이티브 및 운영 웹 빌드에는 실제 HTTPS 백엔드 URL을 지정합니다.
 
 ## 시스템 바와 네이티브 UX
 
