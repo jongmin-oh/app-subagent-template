@@ -3,83 +3,6 @@
 <!-- TODO: 앱이 무엇을 하는지 2~3줄로 적어주세요 -->
 [앱 이름] — [한 줄 설명]
 
-## 개발 수칙
-
-모든 에이전트는 아래 수칙을 다른 규칙보다 우선합니다.
-
-1. **항상 MVP를 유지합니다.** 뭐든지 최소한으로 개발합니다. 요청받지 않은 기능을 염려하거나 마음대로 확장하지 않습니다.
-2. **에러 처리는 하지 않습니다.** 최초 코드 작성 시 에러 처리를 넣지 않고, 에러가 실제로 발생하면 그때 처리합니다.
-3. **복잡한 것보다 심플한 것이 우선입니다.** 이 앱의 목표 중 하나는 심플한 화면 구성과 UX입니다.
-4. **애매한 것은 스스로 판단해서 작성하지 않습니다.** 애매한 것은 무조건 확인 질문을 던집니다.
-   - 메인 세션: 작업을 시작하거나 위임하기 전에 사용자에게 질문합니다.
-   - 서브에이전트: 사용자에게 직접 물을 수 없으므로, 애매한 부분은 작성하지 말고 멈춘 뒤 최종 보고에 질문을 적어 메인에게 넘깁니다. 메인이 사용자에게 확인한 뒤 다시 위임합니다.
-
-## 코딩 행동 지침
-
-> 아래 지침이 위 개발 수칙과 충돌하면 개발 수칙을 따릅니다.
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
-
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
-
-### 1. Think Before Coding
-
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-
-### 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-### 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-### 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
----
-
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
-
 ## 스택
 
 - **프론트엔드**: React SPA + TypeScript strict + Vite 8 → 웹 / Capacitor 8 (iOS·Android)
@@ -114,7 +37,7 @@ backend/         # FastAPI
   run.sh         # sam build + deploy
   tests/         # 백엔드 테스트
 docs/
-  frontend-stack.md # 프론트엔드 스택·설정·배포·검증 가이드
+  frontend-stack.md # 프론트엔드 스택·설정 가이드
   spec.md        # 기능 요구사항, 우선순위 (기능 정의 시 작성)
   openapi.json   # ★ 프론트-백엔드 계약 파일
   db-schema.md   # ★ DB 테이블 스키마 문서
@@ -155,20 +78,3 @@ cd mobile && npm run sync                         # 빌드 + cap sync
 cd mobile && npm run ios                          # Xcode (Mac 필수)
 cd mobile && npm run android                      # Android Studio
 ```
-
-## 코딩 규칙
-
-- **Python**: 타입 힌트 필수, 요청/응답은 모두 `app/schemas/`의 Pydantic 스키마, 라우터에 비즈니스 로직 넣지 않기(services로 분리)
-- **TypeScript**: `strict` 모드, `any` 금지, 타입 단언(`as`)은 꼭 필요할 때만 쓰고 이유를 주석으로 남기기, UI는 `mobile-ui-design-system` MCP(`get_design_spec` → `get_component` → `get_icon` → `get_design_tokens` → `get_design_system`)에서 가져온 HTML + Tailwind CSS v4 및 `--ds-*` 토큰(기본 강조색 `#7c4dff`, 라이트·다크·시스템 테마)과 `THIRD_PARTY_NOTICES.txt`를 사용
-- **Lambda**: 핸들러 밖에서 무거운 초기화 피하기(콜드 스타트), 환경변수는 `.env`가 아닌 IaC에서 주입
-- **CORS**: Function URL 설정(IaC) 한 곳에서만 관리. FastAPI `CORSMiddleware`와 함께 쓰면 헤더가 중복됨. 허용 출처에 웹 배포 URL, 개발 서버, iOS `capacitor://localhost`, Android `https://localhost` 포함
-- **비밀값**: 코드·커밋에 절대 포함하지 않기
-- **테스트**: 요청받은 기능의 정상 흐름만 검증(에러 처리가 없으므로 실패 케이스 테스트는 추가하지 않음). 백엔드는 pytest + FastAPI `TestClient`, AWS는 moto 등 목으로 대체. 프론트는 Vitest + React Testing Library로 보이는 텍스트·역할 기준으로 쿼리하고, API 목 응답은 `src/api/schema.d.ts` 타입을 따름
-
-## 완료 기준 (Definition of Done)
-
-- [ ] 관련 테스트 통과
-- [ ] 린트/타입체크 통과
-- [ ] 프론트 변경 시 Vite 빌드 및 관련 플랫폼 동작 확인 (미검증 환경은 보고)
-- [ ] API 변경 시 `docs/openapi.json` 갱신됨
-- [ ] DB 스키마 변경 시 `docs/db-schema.md` 갱신됨
