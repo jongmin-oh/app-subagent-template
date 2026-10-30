@@ -44,8 +44,8 @@ backend/         # FastAPI
   alembic.ini
   main.py        # FastAPI 앱 + Lambda 엔트리포인트 (Mangum, main.lambda_handler)
   template.yml   # AWS SAM 템플릿 (Lambda, Function URL, DB 리소스)
-  run.sh         # 테스트 + 마이그레이션 + 드리프트 검사 + sam build + deploy
   tests/         # OpenAPI 계약 테스트
+run.sh           # 테스트 + 마이그레이션 + 드리프트 검사 + 웹 빌드(backend/static/) + sam build + deploy
 docs/
   frontend-stack.md # 프론트엔드 스택·설정 가이드
   spec.md        # 기능 요구사항, 우선순위 (기능 정의 시 작성)
@@ -112,7 +112,7 @@ Alembic은 항상 `samconfig.toml` 스택의 DSQL 클러스터를 대상으로 �
 ```bash
 # 백엔드
 # 로컬 백엔드 서버는 없습니다. 백엔드 변경은 run.sh로 배포해 확인합니다.
-cd backend && ./run.sh                            # 테스트 + 마이그레이션 + 배포
+./run.sh                                          # 테스트 + 마이그레이션 + 웹 빌드 + 배포 (루트에서)
 cd backend && pytest                              # OpenAPI 계약 테스트만 (DB 테스트 없음)
 cd backend && ruff check . && ruff format .      # 린트/포맷
 
