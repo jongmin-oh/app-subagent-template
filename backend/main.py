@@ -1,4 +1,3 @@
-import uvicorn
 from fastapi import FastAPI
 from mangum import Mangum
 
@@ -10,6 +9,3 @@ for router in get_routers():
 
 
 lambda_handler = Mangum(app)
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

@@ -83,7 +83,6 @@ npx cap add android
 
 - `.env.local`의 `VITE_API_URL`에 백엔드 URL, `VITE_GOOGLE_WEB_CLIENT_ID`와 `VITE_GOOGLE_IOS_CLIENT_ID`에 해당 OAuth 클라이언트 ID를 설정합니다. `VITE_*`는 번들에 노출되므로 비밀값을 넣지 않습니다.
 - Google Cloud에서 웹 출처(개발은 `http://localhost:5173`, 운영은 실제 웹 URL)를 등록합니다. 웹 클라이언트의 승인된 리디렉션 URI에는 `http://localhost:5173/sign-in`과 운영 웹의 `/sign-in` URL도 등록합니다. Android OAuth 클라이언트에는 `com.reppley.template`과 개발·배포 서명의 SHA-1을 등록합니다.
-- AWS 없이 로컬 백엔드(`DATABASE_URL`, `JWT_SECRET`)를 써도 Google 로그인은 Google 웹 OAuth 클라이언트와 `http://localhost:5173` 출처 등록이 필요합니다. 로컬 백엔드에도 `GOOGLE_WEB_CLIENT_ID`를 같은 값으로 설정합니다.
 - 네이티브 Google 콜백은 Android `MainActivity`와 iOS `AppDelegate`/`SceneDelegate`에 연결되어 있습니다.
 - iOS OAuth 클라이언트의 번들 ID는 `com.reppley.template`입니다. `Info.plist`의 URL scheme을 해당 클라이언트 ID의 역순 값으로 맞춥니다. 현재 값은 기존 앱 설정에서 이전했습니다.
 - `src/features/auth/google.ts`는 online 모드의 Google ID token을 받아 기존 `POST /auth/google` 계약으로 전달합니다. iOS server client ID와 백엔드 `GOOGLE_WEB_CLIENT_ID`도 같은 Web client ID를 사용합니다.
@@ -93,7 +92,7 @@ npx cap add android
 
 플랫폼 설정은 [Google 로그인 가이드](https://capgo.app/docs/plugins/social-login/google/general/), [Android 설정](https://capgo.app/docs/plugins/social-login/google/android/), [iOS 설정](https://capgo.app/docs/plugins/social-login/google/ios/)를 따릅니다. 보안 저장소의 플랫폼 동작은 [플러그인 문서](https://github.com/aparajita/capacitor-secure-storage)를 참고하세요.
 
-CORS는 Lambda Function URL의 SAM 설정 한 곳에서 관리합니다. Lambda URL CORS는 `http`/`https`(또는 `*`)만 허용해 iOS 출처 `capacitor://localhost`를 등록할 수 없으므로, 네이티브 앱은 `capacitor.config.ts`의 `CapacitorHttp`로 요청해 CORS를 거치지 않습니다. 기본 허용 출처는 `http://localhost:5173`(웹 개발), `https://localhost`(Android 웹뷰)입니다. 운영 웹 출처는 SAM의 `AllowedOrigins` 파라미터에 이 출처들과 함께 지정합니다. `server.hostname`/scheme 변경 시 CORS도 갱신합니다. 로컬 `uvicorn` 단독 실행에는 Function URL의 CORS 설정이 적용되지 않습니다. 웹 개발에서는 `VITE_API_URL=/api`로 두면 Vite가 `http://127.0.0.1:8000`으로 프록시합니다. 네이티브 및 운영 웹 빌드에는 실제 HTTPS 백엔드 URL을 지정합니다.
+CORS는 Lambda Function URL의 SAM 설정 한 곳에서 관리합니다. Lambda URL CORS는 `http`/`https`(또는 `*`)만 허용해 iOS 출처 `capacitor://localhost`를 등록할 수 없으므로, 네이티브 앱은 `capacitor.config.ts`의 `CapacitorHttp`로 요청해 CORS를 거치지 않습니다. 기본 허용 출처는 `http://localhost:5173`(웹 개발), `https://localhost`(Android 웹뷰)입니다. 운영 웹 출처는 SAM의 `AllowedOrigins` 파라미터에 이 출처들과 함께 지정합니다. `server.hostname`/scheme 변경 시 CORS도 갱신합니다. 로컬 백엔드 서버는 없습니다. 웹 개발(`npm run dev`), 네이티브, 운영 웹 빌드 모두 `VITE_API_URL`에 배포된 Function URL을 지정합니다. Function URL CORS가 `http://localhost:5173`을 허용하므로 프록시가 필요 없습니다.
 
 ## 시스템 바와 네이티브 UX
 
