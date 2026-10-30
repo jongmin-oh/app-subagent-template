@@ -20,9 +20,13 @@ def _google_jwks() -> jwt.PyJWKClient:
 
 
 @lru_cache
-def _jwt_secret() -> str:
+def _ssm_jwt_secret() -> str:
     resp = boto3.client("ssm").get_parameter(Name=os.environ["JWT_SECRET_PARAM"], WithDecryption=True)
     return resp["Parameter"]["Value"]
+
+
+def _jwt_secret() -> str:
+    return os.environ.get("JWT_SECRET") or _ssm_jwt_secret()
 
 
 def _unauthorized() -> HTTPException:

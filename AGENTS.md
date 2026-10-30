@@ -86,7 +86,10 @@ docs/
 
 ```bash
 # 백엔드
-cd backend && uvicorn main:app --reload          # 로컬 실행
+cd backend && uvicorn main:app --reload          # 로컬 실행 (AWS 설정 필요)
+# AWS 없이 로컬 실행: 로컬 Postgres 시작 + docs/db-schema.md DDL 적용 (종료: scripts/dev_db.py --stop)
+cd backend && export DATABASE_URL=$(../.venv/bin/python scripts/dev_db.py)
+cd backend && JWT_SECRET=local-dev-secret-at-least-32-bytes uvicorn main:app --reload
 cd backend && pytest                              # 테스트
 cd backend && ruff check . && ruff format .      # 린트/포맷
 

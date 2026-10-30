@@ -13,6 +13,8 @@ def _dsql_client() -> Any:
 
 
 def connect() -> psycopg.Connection:
+    if url := os.environ.get("DATABASE_URL"):
+        return psycopg.connect(url, row_factory=dict_row)
     # ponytail: 요청마다 새 연결. 지연이 문제되면 연결 재사용(토큰 15분, 연결 1시간 만료 고려)
     host = os.environ["DSQL_ENDPOINT"]
     return psycopg.connect(
