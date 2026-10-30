@@ -10,8 +10,9 @@
 - **UI**: `mobile-ui-design-system` MCP(`get_design_spec` → `get_component` → `get_icon` → `get_design_tokens` → `get_design_system`)의 HTML + Tailwind CSS v4 + `--ds-*` 토큰(기본 강조색 `#7c4dff`, 라이트·다크·시스템 테마), `THIRD_PARTY_NOTICES.txt` 함께 배포
 - **개발 환경**: Node.js 22.12+, iOS 빌드는 macOS + Xcode 26+. 상세: `docs/frontend-stack.md`
 - **백엔드**: FastAPI (Python 3.13) → AWS Lambda (Mangum 어댑터) + Lambda Function URL
+- **DB 접근·스키마**: SQLAlchemy 2.0 ORM, Alembic 마이그레이션 (DSQL은 `aurora-dsql-sqlalchemy` 방언)
 - **인프라**: AWS SAM
-- **DB**: Aurora DSQL (로컬: `dev_db.py`가 띄우는 Postgres)
+- **DB**: Aurora DSQL (로컬 개발도 배포된 DSQL을 그대로 사용)
 
 ## 폴더 구조
 
@@ -34,19 +35,21 @@ mobile/          # React SPA + Capacitor 앱
   android/      # Capacitor Android 프로젝트
 backend/         # FastAPI
   app/
-    deps.py      # CurrentUser (인증 의존성)
+    deps.py      # SessionDep (DB 세션), CurrentUser (인증 의존성)
+    models/      # SQLAlchemy ORM 모델 (테이블당 <name>.py, __init__.py에서 import)
     routers/
-    schemas/     # Pydantic 모델
-    services/
+    schemas/     # Pydantic 모델 (API 요청·응답)
+    services/    # db.py: 엔진·세션
+  migrations/    # ★ Alembic. versions/가 DB 스키마의 기준
+  alembic.ini
   main.py        # FastAPI 앱 + Lambda 엔트리포인트 (Mangum, main.lambda_handler)
   template.yml   # AWS SAM 템플릿 (Lambda, Function URL, DB 리소스)
-  run.sh         # sam build + deploy
-  tests/         # 백엔드 테스트
+  run.sh         # 테스트 + 마이그레이션 + 드리프트 검사 + sam build + deploy
+  tests/         # OpenAPI 계약 테스트
 docs/
   frontend-stack.md # 프론트엔드 스택·설정 가이드
   spec.md        # 기능 요구사항, 우선순위 (기능 정의 시 작성)
   openapi.json   # ★ 프론트-백엔드 계약 파일
-  db-schema.md   # ★ DB 테이블 스키마 문서
 ```
 
 ## 프론트-백엔드 계약: docs/openapi.json
@@ -75,35 +78,42 @@ docs/
 
 ## 새 기능 추가 순서
 
-ToDo(`backend/app/*/todos.py`, `mobile/src/features/todos/`, 두 곳의 `todos` 테스트)를 복사해 이름만 바꿔 시작합니다.
+ToDo(`backend/app/*/todos.py`, `backend/app/models/todo.py`, `mobile/src/features/todos/`, `mobile/__tests__`의 `todos` 테스트)를 복사해 이름만 바꿔 시작합니다.
 
-1. `docs/db-schema.md`에 테이블과 DDL을 추가합니다.
-2. `backend/app/schemas/<name>.py`, `services/<name>.py`, `routers/<name>.py`를 만듭니다. `routers/`의 `router`는 자동 등록되고, 인증은 `CurrentUser`(`app/deps.py`)로 받습니다.
-3. `docs/openapi.json`을 내보냅니다 (위 계약 1번).
-4. `cd mobile && npm run api:types`로 타입을 다시 생성합니다.
-5. `features/<name>/`에 `api.ts`, `use<Name>.ts`, `<Name>Screen.tsx`, `index.ts`(밖에서 쓸 것만 export)를 만듭니다.
-6. `app/App.tsx`에 라우트를 추가합니다.
-7. `backend/tests/test_<name>.py`와 `mobile/__tests__/<name>.test.tsx`를 추가합니다.
-8. 확인합니다:
+1. `backend/app/models/<name>.py`에 모델을 만들고 `app/models/__init__.py`에서 import합니다.
+2. 마이그레이션을 만듭니다 (아래 DB 스키마와 마이그레이션 참고).
+3. `backend/app/schemas/<name>.py`, `services/<name>.py`, `routers/<name>.py`를 만듭니다. `routers/`의 `router`는 자동 등록되고, DB 세션은 `SessionDep`, 인증은 `CurrentUser`(`app/deps.py`)로 받습니다.
+4. `docs/openapi.json`을 내보냅니다 (위 계약 1번).
+5. `cd mobile && npm run api:types`로 타입을 다시 생성합니다.
+6. `features/<name>/`에 `api.ts`, `use<Name>.ts`, `<Name>Screen.tsx`, `index.ts`(밖에서 쓸 것만 export)를 만듭니다.
+7. `app/App.tsx`에 라우트를 추가합니다.
+8. `mobile/__tests__/<name>.test.tsx`를 추가합니다. 백엔드는 DB 테스트를 두지 않습니다(DB는 DSQL 하나뿐이라 테이블을 비우는 테스트를 돌릴 수 없습니다).
+9. 확인합니다:
    ```bash
    cd backend && pytest && ruff check . && ruff format --check .
    cd mobile && npm run typecheck && npm run lint && npm test
    ```
 
-## DB 스키마 문서: docs/db-schema.md
+## DB 스키마와 마이그레이션
 
-모든 DB 테이블의 스키마를 `docs/db-schema.md`에 항상 최신으로 유지합니다. 테이블·컬럼·키·인덱스를 추가·변경·삭제할 때마다 같은 작업 안에서 이 문서도 함께 수정합니다.
+`backend/app/models/<name>.py`는 코드에서 쓰는 테이블 모양이고, `backend/migrations/versions/`는 스키마 변경 이력이자 DB 스키마의 기준입니다. 현재 스키마는 마이그레이션 파일을 순서대로(`0001_...`, `0002_...`) 읽어서 확인합니다.
+
+Alembic은 항상 `samconfig.toml` 스택의 DSQL 클러스터를 대상으로 하며, 스택이나 `DsqlEndpoint` 출력이 없으면 에러로 멈춥니다. 첫 배포 전 호출만 `run.sh`가 `-x allow_missing_stack=true`로 스택 없음을 건너뜁니다.
+
+스키마를 바꾸는 순서입니다.
+
+1. 모델을 수정합니다.
+2. `cd backend && alembic revision --autogenerate -m "<무엇을 바꿨는지>"`로 마이그레이션을 만듭니다.
+3. 생성된 파일을 검토합니다. DSQL에는 트랜잭션 DDL이 없으므로 마이그레이션 하나는 스키마 작업 하나만 하거나 멱등한 작업(`if_not_exists` 등)만 담아, 실패해도 반쯤 적용된 리비전이 남지 않게 합니다. 데이터 백필은 별도 마이그레이션으로 나눕니다. 배포된 마이그레이션은 수정하지 않고 새 마이그레이션을 추가합니다.
+4. 배포 시 `run.sh`가 `alembic upgrade head`로 DSQL 클러스터에 적용합니다. 그 직후 `alembic check`가 모델과 DB 스키마가 어긋났는지 읽기 전용으로 검사하고, 마이그레이션이 빠졌으면 배포 전에 실패합니다.
 
 ## 명령어
 
 ```bash
 # 백엔드
-# 로컬 실행 (AWS 불필요, 루트에서 순서대로): Postgres 시작 + DDL 적용 → 서버
-export DATABASE_URL=$(.venv/bin/python backend/scripts/dev_db.py)
-export JWT_SECRET=local-dev-secret-at-least-32-bytes
-cd backend && ../.venv/bin/uvicorn main:app --reload
-# 종료 후 루트에서: .venv/bin/python backend/scripts/dev_db.py --stop
-cd backend && pytest                              # 테스트
+# 로컬 백엔드 서버는 없습니다. 백엔드 변경은 run.sh로 배포해 확인합니다.
+cd backend && ./run.sh                            # 테스트 + 마이그레이션 + 배포
+cd backend && pytest                              # OpenAPI 계약 테스트만 (DB 테스트 없음)
 cd backend && ruff check . && ruff format .      # 린트/포맷
 
 # 프론트엔드 (Node.js 22.12+)

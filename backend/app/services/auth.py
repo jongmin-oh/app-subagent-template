@@ -1,14 +1,15 @@
 import os
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
+from uuid import UUID
 
 import boto3
 import jwt
 from fastapi import HTTPException
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
 
-from app.schemas.auth import User
-from app.services.db import connect
-
+from app.models import User
 
 GOOGLE_ISSUERS = ["accounts.google.com", "https://accounts.google.com"]
 TOKEN_TTL = timedelta(days=30)
@@ -20,13 +21,9 @@ def _google_jwks() -> jwt.PyJWKClient:
 
 
 @lru_cache
-def _ssm_jwt_secret() -> str:
+def _jwt_secret() -> str:
     resp = boto3.client("ssm").get_parameter(Name=os.environ["JWT_SECRET_PARAM"], WithDecryption=True)
     return resp["Parameter"]["Value"]
-
-
-def _jwt_secret() -> str:
-    return os.environ.get("JWT_SECRET") or _ssm_jwt_secret()
 
 
 def _unauthorized() -> HTTPException:
@@ -48,28 +45,27 @@ def _verify_google_token(id_token: str) -> dict:
         raise _unauthorized() from e
 
 
-def _upsert_user(google_sub: str, email: str, name: str) -> User:
-    with connect() as conn:
-        row = conn.execute(
-            """
-            INSERT INTO users (google_sub, email, name) VALUES (%s, %s, %s)
-            ON CONFLICT (google_sub) DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name
-            RETURNING id::text, email, name
-            """,
-            (google_sub, email, name),
-        ).fetchone()
-    return User(**row)
+def _upsert_user(session: Session, google_sub: str, email: str, name: str) -> User:
+    stmt = (
+        insert(User)
+        .values(google_sub=google_sub, email=email, name=name)
+        .on_conflict_do_update(index_elements=[User.google_sub], set_={"email": email, "name": name})
+        .returning(User)
+    )
+    user = session.scalars(stmt).one()
+    session.commit()
+    return user
 
 
-def login_with_google(id_token: str) -> tuple[str, User]:
+def login_with_google(session: Session, id_token: str) -> tuple[str, User]:
     claims = _verify_google_token(id_token)
-    user = _upsert_user(claims["sub"], claims["email"], claims.get("name", ""))
+    user = _upsert_user(session, claims["sub"], claims["email"], claims.get("name", ""))
     exp = datetime.now(UTC) + TOKEN_TTL
-    token = jwt.encode({"sub": user.id, "exp": exp}, _jwt_secret(), algorithm="HS256")
+    token = jwt.encode({"sub": str(user.id), "exp": exp}, _jwt_secret(), algorithm="HS256")
     return token, user
 
 
-def get_user_by_token(access_token: str) -> User:
+def get_user_by_token(session: Session, access_token: str) -> User:
     try:
         claims = jwt.decode(
             access_token,
@@ -79,8 +75,7 @@ def get_user_by_token(access_token: str) -> User:
         )
     except jwt.PyJWTError as e:
         raise _unauthorized() from e
-    with connect() as conn:
-        row = conn.execute("SELECT id::text, email, name FROM users WHERE id = %s", (claims["sub"],)).fetchone()
-    if row is None:
+    user = session.get(User, UUID(claims["sub"]))
+    if user is None:
         raise _unauthorized()
-    return User(**row)
+    return user

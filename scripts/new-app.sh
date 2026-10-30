@@ -76,7 +76,6 @@ cat <<MSG
      iOS 클라이언트 ID를 mobile/.env.local 과 mobile/ios/App/App/Info.plist 의 URL scheme 에 넣기
   3. JWT 시크릿 만들기:
      aws ssm put-parameter --name /$SLUG/JWT_SECRET --type SecureString --value "\$(openssl rand -hex 32)" --region ap-northeast-2
-  4. 배포: cd backend && ./run.sh
-  5. 배포 출력의 DsqlEndpoint 로 docs/db-schema.md 의 DDL 실행
-  6. mobile/.env.local 의 VITE_API_URL 을 FunctionUrl 로 설정
+  4. 배포(테스트 + DB 마이그레이션 + 드리프트 검사 + 배포): cd backend && ./run.sh
+  5. mobile/.env.local 의 VITE_API_URL 을 FunctionUrl 로 설정
 MSG

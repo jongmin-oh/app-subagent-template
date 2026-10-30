@@ -1,53 +1,41 @@
+from collections.abc import Sequence
 from uuid import UUID
 
 from fastapi import HTTPException
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from app.schemas.todos import Todo, TodoCreate, TodoUpdate
-from app.services.db import connect
-
-
-def _not_found() -> HTTPException:
-    return HTTPException(status_code=404, detail="Todo not found")
+from app.models import Todo
+from app.schemas.todos import TodoCreate, TodoUpdate
 
 
-def list_todos(user_id: str) -> list[Todo]:
-    with connect() as conn:
-        rows = conn.execute(
-            "SELECT id, title, done, created_at FROM todos WHERE user_id = %s ORDER BY created_at",
-            (user_id,),
-        ).fetchall()
-    return [Todo(**row) for row in rows]
+def _get_own_todo(session: Session, user_id: UUID, todo_id: UUID) -> Todo:
+    todo = session.scalar(select(Todo).where(Todo.id == todo_id, Todo.user_id == user_id))
+    if todo is None:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    return todo
 
 
-def create_todo(user_id: str, body: TodoCreate) -> Todo:
-    with connect() as conn:
-        row = conn.execute(
-            "INSERT INTO todos (user_id, title) VALUES (%s, %s) RETURNING id, title, done, created_at",
-            (user_id, body.title),
-        ).fetchone()
-    return Todo(**row)
+def list_todos(session: Session, user_id: UUID) -> Sequence[Todo]:
+    return session.scalars(select(Todo).where(Todo.user_id == user_id).order_by(Todo.created_at)).all()
 
 
-def update_todo(user_id: str, todo_id: UUID, body: TodoUpdate) -> Todo:
-    with connect() as conn:
-        row = conn.execute(
-            """
-            UPDATE todos SET title = COALESCE(%s, title), done = COALESCE(%s, done)
-            WHERE id = %s AND user_id = %s
-            RETURNING id, title, done, created_at
-            """,
-            (body.title, body.done, todo_id, user_id),
-        ).fetchone()
-    if row is None:
-        raise _not_found()
-    return Todo(**row)
+def create_todo(session: Session, user_id: UUID, body: TodoCreate) -> Todo:
+    todo = Todo(user_id=user_id, title=body.title)
+    session.add(todo)
+    session.commit()
+    return todo
 
 
-def delete_todo(user_id: str, todo_id: UUID) -> None:
-    with connect() as conn:
-        row = conn.execute(
-            "DELETE FROM todos WHERE id = %s AND user_id = %s RETURNING id",
-            (todo_id, user_id),
-        ).fetchone()
-    if row is None:
-        raise _not_found()
+def update_todo(session: Session, user_id: UUID, todo_id: UUID, body: TodoUpdate) -> Todo:
+    todo = _get_own_todo(session, user_id, todo_id)
+    # null은 '바꾸지 않음'으로 취급한다(보낸 필드 중 값이 있는 것만 반영).
+    for field, value in body.model_dump(exclude_none=True).items():
+        setattr(todo, field, value)
+    session.commit()
+    return todo
+
+
+def delete_todo(session: Session, user_id: UUID, todo_id: UUID) -> None:
+    session.delete(_get_own_todo(session, user_id, todo_id))
+    session.commit()

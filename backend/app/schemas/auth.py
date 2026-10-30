@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from typing import Annotated
+
+from pydantic import BaseModel, BeforeValidator, ConfigDict
 
 
 class GoogleLoginRequest(BaseModel):
@@ -6,7 +8,10 @@ class GoogleLoginRequest(BaseModel):
 
 
 class User(BaseModel):
-    id: str
+    model_config = ConfigDict(from_attributes=True)
+
+    # DB의 UUID를 API 계약(문자열)대로 내보낸다.
+    id: Annotated[str, BeforeValidator(str)]
     email: str
     name: str
 

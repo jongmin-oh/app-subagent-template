@@ -41,8 +41,7 @@ Google OAuth 클라이언트 ID는 바꾸지 않습니다. 나머지는 직접 �
    ```bash
    aws ssm put-parameter --name /<slug>/JWT_SECRET --type SecureString --value "$(openssl rand -hex 32)" --region ap-northeast-2
    ```
-4. `cd backend && ./run.sh`로 배포
-5. 배포 출력의 DSQL 엔드포인트에 `docs/db-schema.md`의 DDL 실행
-6. `mobile/.env.local`의 `VITE_API_URL`을 배포 출력의 `FunctionUrl`로 설정
+4. `cd backend && ./run.sh`로 테스트, DB 마이그레이션(`alembic upgrade head`), 스키마 드리프트 검사(`alembic check`), 배포를 한 번에 합니다. 배포하는 AWS 자격 증명에 `dsql:DbConnectAdmin`과 `cloudformation:DescribeStacks` 권한이 필요합니다.
+5. `mobile/.env.local`의 `VITE_API_URL`을 배포 출력의 `FunctionUrl`로 설정합니다. 로컬 백엔드 서버는 없으므로 `npm run dev`도 배포된 백엔드를 씁니다.
 
 [프론트엔드 스택·OAuth·플랫폼 설정](docs/frontend-stack.md), [개발 규칙](CLAUDE.md)을 참고하세요.
