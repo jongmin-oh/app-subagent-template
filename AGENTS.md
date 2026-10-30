@@ -11,7 +11,7 @@
 - **개발 환경**: Node.js 22.12+, iOS 빌드는 macOS + Xcode 26+. 상세: `docs/frontend-stack.md`
 - **백엔드**: FastAPI (Python 3.13) → AWS Lambda (Mangum 어댑터) + Lambda Function URL
 - **인프라**: AWS SAM
-- **DB**: <!-- TODO: DynamoDB / RDS(Postgres) 등 -->
+- **DB**: Aurora DSQL (로컬: `dev_db.py`가 띄우는 Postgres)
 
 ## 폴더 구조
 
@@ -69,15 +69,26 @@ docs/
 2. 다른 feature는 `@/features/<name>`(index.ts)로만 import합니다. `@/features/<name>/<file>` 딥 임포트는 금지이고, feature 안에서는 `./`를 씁니다.
 3. feature 안에서 서버 호출은 `api.ts`, 서버 상태는 `use*.ts`, UI는 `*.tsx`에 둡니다. 컴포넌트는 `fetch`를 직접 부르지 않고, 타입은 `@/lib/schema`에서 가져옵니다.
 
+4. 서버 데이터는 TanStack Query 훅(`use<Name>.ts`)에 두고, 화면 안에서만 쓰는 클라이언트 상태는 `features/<name>/store.ts`(Zustand)에 둡니다.
+
 규칙 1·2는 `mobile/eslint.config.js`의 `no-restricted-imports`가 강제하며 `npm run lint`가 위반을 잡습니다. `features/` 아래 새 폴더는 자동으로 적용됩니다.
 
-새 feature 추가 순서:
+## 새 기능 추가 순서
 
-1. `features/<name>/`에 `api.ts`, `use<Name>.ts`, `<Name>Screen.tsx`를 만듭니다.
-2. 밖에서 쓸 것만 `index.ts`로 export합니다.
-3. `app/App.tsx`에 라우트를 추가합니다.
-4. `__tests__/<name>.test.tsx`에 테스트를 추가합니다.
-5. `cd mobile && npm run typecheck && npm run lint && npm test`로 확인합니다.
+ToDo(`backend/app/*/todos.py`, `mobile/src/features/todos/`, 두 곳의 `todos` 테스트)를 복사해 이름만 바꿔 시작합니다.
+
+1. `docs/db-schema.md`에 테이블과 DDL을 추가합니다.
+2. `backend/app/schemas/<name>.py`, `services/<name>.py`, `routers/<name>.py`를 만듭니다. `routers/`의 `router`는 자동 등록되고, 인증은 `CurrentUser`(`app/deps.py`)로 받습니다.
+3. `docs/openapi.json`을 내보냅니다 (위 계약 1번).
+4. `cd mobile && npm run api:types`로 타입을 다시 생성합니다.
+5. `features/<name>/`에 `api.ts`, `use<Name>.ts`, `<Name>Screen.tsx`, `index.ts`(밖에서 쓸 것만 export)를 만듭니다.
+6. `app/App.tsx`에 라우트를 추가합니다.
+7. `backend/tests/test_<name>.py`와 `mobile/__tests__/<name>.test.tsx`를 추가합니다.
+8. 확인합니다:
+   ```bash
+   cd backend && pytest && ruff check . && ruff format --check .
+   cd mobile && npm run typecheck && npm run lint && npm test
+   ```
 
 ## DB 스키마 문서: docs/db-schema.md
 
@@ -87,10 +98,11 @@ docs/
 
 ```bash
 # 백엔드
-cd backend && uvicorn main:app --reload          # 로컬 실행 (AWS 설정 필요)
-# AWS 없이 로컬 실행: 로컬 Postgres 시작 + docs/db-schema.md DDL 적용 (종료: scripts/dev_db.py --stop)
-cd backend && export DATABASE_URL=$(../.venv/bin/python scripts/dev_db.py)
-cd backend && JWT_SECRET=local-dev-secret-at-least-32-bytes uvicorn main:app --reload
+# 로컬 실행 (AWS 불필요, 루트에서 순서대로): Postgres 시작 + DDL 적용 → 서버
+export DATABASE_URL=$(.venv/bin/python backend/scripts/dev_db.py)
+export JWT_SECRET=local-dev-secret-at-least-32-bytes
+cd backend && ../.venv/bin/uvicorn main:app --reload
+# 종료 후 루트에서: .venv/bin/python backend/scripts/dev_db.py --stop
 cd backend && pytest                              # 테스트
 cd backend && ruff check . && ruff format .      # 린트/포맷
 
