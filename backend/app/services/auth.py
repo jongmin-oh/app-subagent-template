@@ -11,7 +11,6 @@ from app.services.db import connect
 
 
 GOOGLE_ISSUERS = ["accounts.google.com", "https://accounts.google.com"]
-JWT_SECRET_NAME = "/backend-template/JWT_SECRET"
 TOKEN_TTL = timedelta(days=30)
 
 
@@ -22,7 +21,7 @@ def _google_jwks() -> jwt.PyJWKClient:
 
 @lru_cache
 def _jwt_secret() -> str:
-    resp = boto3.client("ssm").get_parameter(Name=JWT_SECRET_NAME, WithDecryption=True)
+    resp = boto3.client("ssm").get_parameter(Name=os.environ["JWT_SECRET_PARAM"], WithDecryption=True)
     return resp["Parameter"]["Value"]
 
 

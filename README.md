@@ -24,4 +24,25 @@ npm run ios      # macOS + Xcode 26+
 npm run android  # Android Studio
 ```
 
+## 새 앱 시작하기
+
+템플릿을 클론한 뒤 한 번 실행합니다. 스택 이름, 번들 ID, 표시 이름이 한 번에 바뀝니다. 백엔드의 Lambda 이름과 JWT 시크릿 경로(`/<slug>/JWT_SECRET`)는 스택 이름에서 파생됩니다.
+
+```bash
+scripts/new-app.sh <slug> <bundle-id> "<Display Name>"
+# 예: scripts/new-app.sh idea-box com.example.ideabox "Idea Box"
+```
+
+Google OAuth 클라이언트 ID는 바꾸지 않습니다. 나머지는 직접 합니다.
+
+1. Google Cloud에서 웹·iOS·Android OAuth 클라이언트 생성 ([설정 가이드](docs/frontend-stack.md))
+2. 웹 클라이언트 ID를 `backend/samconfig.toml`의 `GoogleWebClientId`와 `mobile/.env.local`에, iOS 클라이언트 ID를 `mobile/.env.local`과 `Info.plist` URL scheme에 입력
+3. JWT 시크릿 생성:
+   ```bash
+   aws ssm put-parameter --name /<slug>/JWT_SECRET --type SecureString --value "$(openssl rand -hex 32)" --region ap-northeast-2
+   ```
+4. `cd backend && ./run.sh`로 배포
+5. 배포 출력의 DSQL 엔드포인트에 `docs/db-schema.md`의 DDL 실행
+6. `mobile/.env.local`의 `VITE_API_URL`을 배포 출력의 `FunctionUrl`로 설정
+
 [프론트엔드 스택·OAuth·플랫폼 설정](docs/frontend-stack.md), [개발 규칙](CLAUDE.md)을 참고하세요.

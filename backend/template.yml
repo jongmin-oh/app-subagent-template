@@ -23,7 +23,7 @@ Resources:
   LambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: backend-template
+      FunctionName: !Ref AWS::StackName
       Handler: main.lambda_handler
       CodeUri: .
       Environment:
@@ -31,11 +31,12 @@ Resources:
           TZ: Asia/Seoul
           DSQL_ENDPOINT: !GetAtt DsqlCluster.Endpoint
           GOOGLE_WEB_CLIENT_ID: !Ref GoogleWebClientId
+          JWT_SECRET_PARAM: !Sub '/${AWS::StackName}/JWT_SECRET'
       Policies:
         - Statement:
             - Effect: Allow
               Action: ssm:GetParameter
-              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/backend-template/JWT_SECRET'
+              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/JWT_SECRET'
             - Effect: Allow
               Action: kms:Decrypt
               Resource: '*'
@@ -61,7 +62,7 @@ Resources:
 
 Outputs:
   FunctionUrl:
-    Description: Invoke URL for backend-template
+    Description: Lambda Function URL
     Value: !GetAtt LambdaFunctionUrl.FunctionUrl
   DsqlClusterIdentifier:
     Description: Aurora DSQL cluster identifier
