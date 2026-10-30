@@ -27,3 +27,33 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 ```
+
+## todos
+
+| 컬럼 | 타입 | 제약 / 기본값 | 설명 |
+|---|---|---|---|
+| `id` | `UUID` | PK, `DEFAULT gen_random_uuid()` | 할 일 ID |
+| `user_id` | `UUID` | `NOT NULL` | 소유자 (`users.id`). DSQL은 외래 키를 지원하지 않아 제약 없이 앱에서 `WHERE user_id = %s`로 항상 범위를 좁힙니다 |
+| `title` | `VARCHAR(200)` | `NOT NULL` | 제목 (API에서 공백 제거 후 1~200자 검증) |
+| `done` | `BOOLEAN` | `NOT NULL`, `DEFAULT false` | 완료 여부 |
+| `created_at` | `TIMESTAMPTZ` | `NOT NULL`, `DEFAULT CURRENT_TIMESTAMP` | 생성 시각 (목록 정렬 기준) |
+
+인덱스: `todos_user_id_idx (user_id)`. 한 사용자의 목록 조회용입니다.
+
+### DDL
+
+DSQL은 한 트랜잭션에 DDL 1개만 허용하므로 각각 단독으로 실행합니다. 인덱스는 `CREATE INDEX ASYNC`만 지원하며, 완료까지 비동기로 진행됩니다.
+
+```sql
+CREATE TABLE IF NOT EXISTS todos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    done BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+```sql
+CREATE INDEX ASYNC IF NOT EXISTS todos_user_id_idx ON todos (user_id);
+```

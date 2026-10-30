@@ -70,7 +70,7 @@ test("protected routes show sign-in without a stored token", async () => {
 });
 test("restores session with the generated /me contract", async () => {
   signedIn();
-  expect(await screen.findByText("안녕하세요, Alice님")).toBeVisible();
+  expect(await screen.findByRole("heading", { name: "할 일" })).toBeVisible();
   expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/me$/), {
     headers: { Authorization: "Bearer saved-token" },
   });
@@ -90,7 +90,7 @@ test("Google sign-in exchanges id_token and stores the server token", async () =
   await ui.click(
     await screen.findByRole("button", { name: "Google로 로그인" }),
   );
-  expect(await screen.findByText("안녕하세요, Alice님")).toBeVisible();
+  expect(await screen.findByRole("heading", { name: "할 일" })).toBeVisible();
   expect(fetchMock).toHaveBeenCalledWith(
     expect.stringMatching(/\/auth\/google$/),
     expect.objectContaining({

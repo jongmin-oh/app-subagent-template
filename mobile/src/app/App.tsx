@@ -2,7 +2,7 @@ import { NavLink, Navigate, Outlet, Route, Routes } from "react-router";
 import { NativeLifecycle } from "@/app/NativeLifecycle";
 import { MyScreen } from "@/features/account";
 import { AuthProvider, SignIn, useAuth } from "@/features/auth";
-import { HomeScreen } from "@/features/home";
+import { TodoScreen } from "@/features/todos";
 
 function HomeIcon() {
   return (
@@ -61,7 +61,7 @@ function Layout() {
         <NavLink
           to="/"
           end
-          aria-label="홈"
+          aria-label="할 일"
           className={({ isActive }) =>
             `flex min-h-12 min-w-12 flex-1 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
               isActive ? "text-brand" : "text-ink"
@@ -104,7 +104,7 @@ function AppRoutes() {
         element={user ? <Navigate to="/" replace /> : <SignIn />}
       />
       <Route element={user ? <Layout /> : <Navigate to="/sign-in" replace />}>
-        <Route index element={<HomeScreen />} />
+        <Route index element={<TodoScreen />} />
         <Route path="my" element={<MyScreen />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -22,9 +22,9 @@ mobile/          # React SPA + Capacitor 앱
     features/    # 기능별 폴더. <name>/ 안에 index.ts, api.ts, use*.ts, *.tsx
       auth/      # AuthProvider, useAuth, SignIn, Google 로그인
       account/   # 내 정보 화면
-      home/      # 홈 화면
+      todos/     # 할 일 (참조 구현)
     components/  # 기능과 무관한 공용 UI (Button, Modal, Screen)
-    lib/         # http.ts(API_URL), token.ts, schema.d.ts(openapi에서 생성)
+    lib/         # http.ts(API_URL, authedFetch), token.ts, schema.d.ts(openapi에서 생성)
     theme/       # styles.css: Mobile UI Design System MCP 테마·토큰(--ds-*)·Tailwind CSS v4
   public/
     THIRD_PARTY_NOTICES.txt # MCP 라이선스 고지문 (빌드 시 dist/에 포함)
@@ -34,6 +34,7 @@ mobile/          # React SPA + Capacitor 앱
   android/      # Capacitor Android 프로젝트
 backend/         # FastAPI
   app/
+    deps.py      # CurrentUser (인증 의존성)
     routers/
     schemas/     # Pydantic 모델
     services/
